@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/timestamp.proto";
+
+enum UserStatus {
+  PENDING = 0;
+  ACTIVED = 1;
+  FREEZED = 2;
+}
+
+message User {
+  uint64 id = 1;
+  string email = 2;
+  string password = 3;
+  string nickname = 4;
+  UserStatus status = 5;
+  google.protobuf.Timestamp dateline = 6;
+  bool is_del = 7;
+}
