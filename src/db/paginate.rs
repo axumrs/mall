@@ -32,3 +32,38 @@ impl Into<pb::PaginateRequest> for PaginateRequest {
         }
     }
 }
+
+pub struct Paginate<T> {
+    pub page: u32,
+    pub page_size: u32,
+    pub total: u32,
+    pub total_page: u32,
+    pub data: Vec<T>,
+}
+
+impl<T> Paginate<T> {
+    pub fn new(page: u32, page_size: u32, total: u32, data: Vec<T>) -> Self {
+        let total_page = f64::ceil(total as f64 / page_size as f64) as u32;
+        Self {
+            page,
+            page_size,
+            total,
+            data,
+            total_page,
+        }
+    }
+    pub fn from_req(r: &PaginateRequest, total: u32, data: Vec<T>) -> Self {
+        Self::new(r.page, r.page_size, total, data)
+    }
+    pub fn quick(r: &PaginateRequest, count: &(i64,), data: Vec<T>) -> Self {
+        Self::from_req(r, count.0 as u32, data)
+    }
+    pub fn to_pb(&self) -> pb::Paginate {
+        pb::Paginate {
+            total: self.total,
+            page: self.page,
+            page_size: self.page_size,
+            total_page: self.total_page,
+        }
+    }
+}

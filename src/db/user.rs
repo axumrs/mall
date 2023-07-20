@@ -6,10 +6,11 @@ pub async fn create(
     sf: &mut snowflake::SnowflakeIdGenerator,
 ) -> Result<u64> {
     let id = sf.real_time_generate() as u64;
+    let pwd = password::hash(&m.password)?;
     sqlx::query("INSERT INTO users (id, email, password, nickname, status, dateline, is_del) VALUES(?,?,?,?,?,?,?)")
     .bind(&id)
     .bind(&m.email)
-    .bind(&m.password)
+    .bind(&pwd)
     .bind(&m.nickname)
     .bind(&m.status)
     .bind(&m.dateline)
@@ -143,4 +144,72 @@ pub async fn find(
         .fetch_optional(conn)
         .await
         .map_err(Error::from)
+}
+
+pub async fn list(
+    conn: &sqlx::MySqlPool,
+    r: &model::UserListRequest,
+) -> Result<super::Paginate<model::User>> {
+    let mut q = sqlx::QueryBuilder::new(
+        "SELECT id, email, password, nickname, status, dateline, is_del FROM users WHERE 1=1",
+    );
+    let mut qc = sqlx::QueryBuilder::new("SELECT COUNT(*) FROM users WHERE 1=1");
+
+    if let Some(email) = &r.email {
+        let sql = " AND email LIKE ";
+        let param = format!("%{}%", email);
+        q.push(sql).push_bind(param.clone());
+        qc.push(sql).push_bind(param);
+    }
+
+    if let Some(nickname) = &r.nickname {
+        let sql = " AND nickname LIKE ";
+        let param = format!("%{}%", nickname);
+        q.push(sql).push_bind(param.clone());
+        qc.push(sql).push_bind(param);
+    }
+
+    if let Some(status) = &r.status {
+        let sql = " AND status = ";
+        q.push(sql).push_bind(status);
+        qc.push(sql).push_bind(status);
+    }
+
+    if let Some(is_del) = &r.is_del {
+        let sql = " AND is_del = ";
+        q.push(sql).push_bind(is_del);
+        qc.push(sql).push_bind(is_del);
+    }
+
+    if let Some(date_range) = &r.date_range {
+        let sql = " AND dateline BETWEEN ";
+        let sql_end = " AND ";
+        q.push(sql)
+            .push_bind(&date_range.start)
+            .push(sql_end)
+            .push_bind(&date_range.end);
+        qc.push(sql)
+            .push_bind(&date_range.start)
+            .push(sql_end)
+            .push_bind(&date_range.end);
+    }
+
+    q.push(" LIMIT ")
+        .push_bind(r.paginate.page_size)
+        .push(" OFFSET ")
+        .push_bind(r.paginate.page * r.paginate.page_size);
+
+    let count: (i64,) = qc
+        .build_query_as()
+        .fetch_one(conn)
+        .await
+        .map_err(Error::from)?;
+
+    let list: Vec<model::User> = q
+        .build_query_as()
+        .fetch_all(conn)
+        .await
+        .map_err(Error::from)?;
+
+    Ok(super::Paginate::quick(&r.paginate, &count, list))
 }

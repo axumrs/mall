@@ -1,6 +1,8 @@
 pub mod paginate;
 pub mod user;
 
+pub use paginate::*;
+
 pub async fn del_or_restore(
     conn: &sqlx::MySqlPool,
     table: &str,

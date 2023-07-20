@@ -1,25 +1,5 @@
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Id {
-    #[prost(uint64, tag = "1")]
-    pub value: u64,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Aff {
-    #[prost(uint64, tag = "1")]
-    pub rows: u64,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeleteOrRestoreRequest {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
-    #[prost(bool, tag = "2")]
-    pub is_del: bool,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct User {
     #[prost(uint64, tag = "1")]
     pub id: u64,
@@ -67,6 +47,18 @@ impl UserStatus {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Aff {
+    #[prost(uint64, tag = "1")]
+    pub rows: u64,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Id {
+    #[prost(uint64, tag = "1")]
+    pub value: u64,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DateRange {
     #[prost(message, optional, tag = "1")]
     pub start: ::core::option::Option<::prost_types::Timestamp>,
@@ -100,6 +92,14 @@ pub struct PaginateRequest {
     /// 每页条数
     #[prost(uint32, optional, tag = "2")]
     pub page_size: ::core::option::Option<u32>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteOrRestoreRequest {
+    #[prost(uint64, tag = "1")]
+    pub id: u64,
+    #[prost(bool, tag = "2")]
+    pub is_del: bool,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

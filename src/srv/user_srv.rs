@@ -1,7 +1,5 @@
 use std::sync::Arc;
 
-use axum::http::request;
-
 use crate::{
     db, model,
     pb::{self, user_service_server::UserService, Id},
@@ -142,6 +140,19 @@ impl UserService for User {
         &self,
         request: tonic::Request<pb::ListUserRequest>,
     ) -> std::result::Result<tonic::Response<pb::ListUserResponse>, tonic::Status> {
-        unimplemented!()
+        let r = request.into_inner();
+        let result = db::user::list(&self.pool, &model::UserListRequest::from(r))
+            .await
+            .map_err(|e| tonic::Status::internal(e.message))?;
+        let paginate = result.to_pb();
+        let mut users = Vec::with_capacity(result.data.len());
+        for u in result.data {
+            let user: pb::User = u.into();
+            users.push(user);
+        }
+        Ok(tonic::Response::new(pb::ListUserResponse {
+            paginate: Some(paginate),
+            users,
+        }))
     }
 }
