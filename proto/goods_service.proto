@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package pb;
+
+import "brand_message.proto";
+import "aff_message.proto";
+import "id_message.proto";
+// import "daterange_message.proto";
+import "paginate_message.proto";
+import "del_or_restore_message.proto";
+
+// --- 查找品牌 ---
+// 查找品牌请求
+message FindBrandRequest {
+  oneof by {
+    // 根据ID查找
+    uint64 id = 1;
+    // 根据名称查找
+    string name = 2;
+  }
+  // 限定是否删除
+  optional bool is_del = 3;
+}
+
+// 查找品牌响应
+message FindBrandResponse { optional Brand brand = 1; }
+
+// --- 品牌列表 ---
+// 品牌列表请求
+message ListBrandRequest {
+  PaginateRequest paginate = 1;
+  optional string name = 2;
+  optional bool is_del = 3;
+}
+
+// 品牌列表响应
+message ListBrandResponse {
+  Paginate paginate = 1;
+  repeated Brand brands = 2;
+}
+
+// 商品服务
+service GoodsService {
+  // 创建品牌
+  rpc CreateBrand(Brand) returns (ID);
+  // 修改品牌
+  rpc EditBrand(Brand) returns (Aff);
+  // 删除或还原品牌
+  rpc DeleteOrRestoreBrand(DeleteOrRestoreRequest) returns (Aff);
+  // 查找品牌
+  rpc FindBrand(FindBrandRequest) returns (FindBrandResponse);
+  // 品牌列表
+  rpc ListBrand(ListBrandRequest) returns (ListBrandResponse);
+}

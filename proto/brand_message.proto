@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package pb;
+
+message Brand {
+    uint64 id = 1;
+    string name = 2;
+    string logo = 3;
+    bool is_del = 4;
+}
