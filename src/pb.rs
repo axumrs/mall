@@ -110,6 +110,23 @@ pub struct ListBrandResponse {
     #[prost(message, repeated, tag = "2")]
     pub brands: ::prost::alloc::vec::Vec<Brand>,
 }
+/// --- 品牌是否存在 ---
+/// 品牌是否存在请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BrandExistsRequest {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(uint64, optional, tag = "2")]
+    pub id: ::core::option::Option<u64>,
+}
+/// 是否存在
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct IsExistsResponse {
+    #[prost(bool, tag = "1")]
+    pub value: bool,
+}
 /// Generated client implementations.
 pub mod goods_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
@@ -314,6 +331,32 @@ pub mod goods_service_client {
             req.extensions_mut().insert(GrpcMethod::new("pb.GoodsService", "ListBrand"));
             self.inner.unary(req, path, codec).await
         }
+        /// 品牌是否存在
+        pub async fn brand_exists(
+            &mut self,
+            request: impl tonic::IntoRequest<super::BrandExistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::IsExistsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/BrandExists",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "BrandExists"));
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -352,6 +395,14 @@ pub mod goods_service_server {
             request: tonic::Request<super::ListBrandRequest>,
         ) -> std::result::Result<
             tonic::Response<super::ListBrandResponse>,
+            tonic::Status,
+        >;
+        /// 品牌是否存在
+        async fn brand_exists(
+            &self,
+            request: tonic::Request<super::BrandExistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::IsExistsResponse>,
             tonic::Status,
         >;
     }
@@ -640,6 +691,52 @@ pub mod goods_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = ListBrandSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/BrandExists" => {
+                    #[allow(non_camel_case_types)]
+                    struct BrandExistsSvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::BrandExistsRequest>
+                    for BrandExistsSvc<T> {
+                        type Response = super::IsExistsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::BrandExistsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).brand_exists(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = BrandExistsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

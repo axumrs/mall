@@ -39,6 +39,16 @@ message ListBrandResponse {
   repeated Brand brands = 2;
 }
 
+// --- 品牌是否存在 ---
+// 品牌是否存在请求
+message BrandExistsRequest {
+  string name = 1;
+  optional uint64 id = 2;
+}
+
+// 是否存在
+message IsExistsResponse { bool value = 1; }
+
 // 商品服务
 service GoodsService {
   // 创建品牌
@@ -51,4 +61,6 @@ service GoodsService {
   rpc FindBrand(FindBrandRequest) returns (FindBrandResponse);
   // 品牌列表
   rpc ListBrand(ListBrandRequest) returns (ListBrandResponse);
+  // 品牌是否存在
+  rpc BrandExists(BrandExistsRequest) returns (IsExistsResponse);
 }
