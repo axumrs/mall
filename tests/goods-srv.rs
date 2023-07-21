@@ -6,6 +6,8 @@ async fn get_client() -> GoodsServiceClient<Channel> {
     GoodsServiceClient::connect(dst).await.unwrap()
 }
 
+// #region 品牌测试用例
+
 #[tokio::test]
 async fn test_create_brand() {
     let mut cli = get_client().await;
@@ -150,3 +152,5 @@ async fn test_brand_exist() {
         .into_inner();
     assert!(resp.value);
 }
+
+// #endregion 品牌测试用例
