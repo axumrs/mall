@@ -1,13 +1,13 @@
-use crate::{model, utils::password, Error, Result};
+use crate::{
+    model,
+    utils::{id, password},
+    Error, Result,
+};
 
-pub async fn create(
-    conn: &sqlx::MySqlPool,
-    m: &model::User,
-    sf: &mut snowflake::SnowflakeIdGenerator,
-) -> Result<u64> {
-    let id = sf.real_time_generate() as u64;
+pub async fn create(conn: &sqlx::PgPool, m: &model::User) -> Result<String> {
+    let id = id::new();
     let pwd = password::hash(&m.password)?;
-    sqlx::query("INSERT INTO users (id, email, password, nickname, status, dateline, is_del) VALUES(?,?,?,?,?,?,?)")
+    sqlx::query("INSERT INTO users (id, email, password, nickname, status, dateline, is_del) VALUES($1,$2,$3,$4,$5,$6,$7)")
     .bind(&id)
     .bind(&m.email)
     .bind(&pwd)
@@ -22,10 +22,10 @@ pub async fn create(
 }
 
 pub async fn exists(
-    conn: &sqlx::MySqlPool,
+    conn: &sqlx::PgPool,
     email: String,
     nickname: Option<String>,
-    id: Option<u64>,
+    id: Option<String>,
 ) -> Result<bool> {
     let mut q = sqlx::QueryBuilder::new("SELECT COUNT(*) FROM users WHERE 1=1");
 
@@ -51,8 +51,8 @@ pub async fn exists(
     Ok(count.0 > 0)
 }
 
-pub async fn edit(conn: &sqlx::MySqlPool, m: &model::User) -> Result<u64> {
-    let aff_row = sqlx::query("UPDATE users SET nickname=? WHERE id=?")
+pub async fn edit(conn: &sqlx::PgPool, m: &model::User) -> Result<u64> {
+    let aff_row = sqlx::query("UPDATE users SET nickname=$1 WHERE id=$2")
         .bind(&m.nickname)
         .bind(&m.id)
         .execute(conn)
@@ -62,16 +62,16 @@ pub async fn edit(conn: &sqlx::MySqlPool, m: &model::User) -> Result<u64> {
     Ok(aff_row)
 }
 
-pub async fn del_or_restore(conn: &sqlx::MySqlPool, id: u64, is_del: bool) -> Result<u64> {
+pub async fn del_or_restore(conn: &sqlx::PgPool, id: String, is_del: bool) -> Result<u64> {
     super::del_or_restore(conn, "users", id, is_del).await
 }
 
 pub async fn change_status(
-    conn: &sqlx::MySqlPool,
-    id: u64,
+    conn: &sqlx::PgPool,
+    id: String,
     status: model::UserStatus,
 ) -> Result<u64> {
-    let aff_row = sqlx::query("UPDATE users SET status=? WHERE id=?")
+    let aff_row = sqlx::query("UPDATE users SET status=$1 WHERE id=$2")
         .bind(&status)
         .bind(&id)
         .execute(conn)
@@ -82,15 +82,15 @@ pub async fn change_status(
 }
 
 pub async fn change_password(
-    conn: &sqlx::MySqlPool,
-    id: u64,
+    conn: &sqlx::PgPool,
+    id: String,
     new_password: String,
     password: Option<String>,
 ) -> Result<u64> {
     let u = find(
         conn,
         &model::UserFindRequest {
-            by: model::UserFindBy::ID(id),
+            by: model::UserFindBy::ID(id.clone()),
             is_del: None,
             status: None,
         },
@@ -109,7 +109,7 @@ pub async fn change_password(
     }
 
     let pwd = password::hash(&new_password)?;
-    let aff = sqlx::query("UPDATE users SET password=? WHERE id=?")
+    let aff = sqlx::query("UPDATE users SET password=$1 WHERE id=$2")
         .bind(&pwd)
         .bind(&id)
         .execute(conn)
@@ -120,10 +120,7 @@ pub async fn change_password(
     Ok(aff)
 }
 
-pub async fn find(
-    conn: &sqlx::MySqlPool,
-    r: &model::UserFindRequest,
-) -> Result<Option<model::User>> {
+pub async fn find(conn: &sqlx::PgPool, r: &model::UserFindRequest) -> Result<Option<model::User>> {
     let mut q = sqlx::QueryBuilder::new(
         "SELECT id, email, password, nickname, status, dateline, is_del FROM users WHERE 1=1",
     );
@@ -147,7 +144,7 @@ pub async fn find(
 }
 
 pub async fn list(
-    conn: &sqlx::MySqlPool,
+    conn: &sqlx::PgPool,
     r: &model::UserListRequest,
 ) -> Result<super::Paginate<model::User>> {
     let mut q = sqlx::QueryBuilder::new(
@@ -156,14 +153,14 @@ pub async fn list(
     let mut qc = sqlx::QueryBuilder::new("SELECT COUNT(*) FROM users WHERE 1=1");
 
     if let Some(email) = &r.email {
-        let sql = " AND email LIKE ";
+        let sql = " AND email ILIKE ";
         let param = format!("%{}%", email);
         q.push(sql).push_bind(param.clone());
         qc.push(sql).push_bind(param);
     }
 
     if let Some(nickname) = &r.nickname {
-        let sql = " AND nickname LIKE ";
+        let sql = " AND nickname ILIKE ";
         let param = format!("%{}%", nickname);
         q.push(sql).push_bind(param.clone());
         qc.push(sql).push_bind(param);
@@ -195,9 +192,9 @@ pub async fn list(
     }
 
     q.push(" LIMIT ")
-        .push_bind(r.paginate.page_size)
+        .push_bind(r.paginate.page_size())
         .push(" OFFSET ")
-        .push_bind(r.paginate.page * r.paginate.page_size);
+        .push_bind(r.paginate.offset());
 
     let count: (i64,) = qc
         .build_query_as()

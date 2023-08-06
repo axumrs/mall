@@ -38,8 +38,8 @@ impl std::default::Default for ServerConfig {
         let addr = env::var("MALL_SERVER_ADDR").unwrap_or("0.0.0.0:9527".to_string());
         // .unwrap_or(get_available_addr().unwrap_or("0.0.0.0:9527".to_string()));
 
-        let db_dsn =
-            env::var("MALL_DB_DSN").unwrap_or("mysql://root:root@127.0.0.1:3306/mall".to_string());
+        let db_dsn = env::var("MALL_DB_DSN")
+            .unwrap_or("postgres://mall:mall@127.0.0.1:5432/mall".to_string());
         Self {
             addr,
             db_dsn,

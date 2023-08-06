@@ -14,7 +14,7 @@ import "del_or_restore_message.proto";
 message FindBrandRequest {
   oneof by {
     // 根据ID查找
-    uint64 id = 1;
+    string id = 1;
     // 根据名称查找
     string name = 2;
   }
@@ -43,7 +43,7 @@ message ListBrandResponse {
 // 品牌是否存在请求
 message BrandExistsRequest {
   string name = 1;
-  optional uint64 id = 2;
+  optional string id = 2;
 }
 
 // 是否存在

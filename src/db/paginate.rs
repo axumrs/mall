@@ -6,6 +6,18 @@ pub struct PaginateRequest {
     pub page_size: u32,
 }
 
+impl PaginateRequest {
+    pub fn page(&self) -> i32 {
+        self.page as i32
+    }
+    pub fn page_size(&self) -> i32 {
+        self.page_size as i32
+    }
+    pub fn offset(&self) -> i32 {
+        self.page() * self.page_size()
+    }
+}
+
 impl std::default::Default for PaginateRequest {
     fn default() -> Self {
         Self {
@@ -65,5 +77,14 @@ impl<T> Paginate<T> {
             page_size: self.page_size,
             total_page: self.total_page,
         }
+    }
+    pub fn page_size(&self) -> i32 {
+        self.page_size as i32
+    }
+    pub fn page(&self) -> i32 {
+        self.page as i32
+    }
+    pub fn offset(&self) -> i32 {
+        self.page() * self.page_size()
     }
 }

@@ -1,14 +1,16 @@
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Brand {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub name: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub logo: ::prost::alloc::string::String,
     #[prost(bool, tag = "4")]
     pub is_del: bool,
+    #[prost(message, optional, tag = "5")]
+    pub dateline: ::core::option::Option<::prost_types::Timestamp>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -19,8 +21,8 @@ pub struct Aff {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Id {
-    #[prost(uint64, tag = "1")]
-    pub value: u64,
+    #[prost(string, tag = "1")]
+    pub value: ::prost::alloc::string::String,
 }
 /// 分页
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -53,8 +55,8 @@ pub struct PaginateRequest {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeleteOrRestoreRequest {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
     #[prost(bool, tag = "2")]
     pub is_del: bool,
 }
@@ -75,8 +77,8 @@ pub mod find_brand_request {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum By {
         /// 根据ID查找
-        #[prost(uint64, tag = "1")]
-        Id(u64),
+        #[prost(string, tag = "1")]
+        Id(::prost::alloc::string::String),
         /// 根据名称查找
         #[prost(string, tag = "2")]
         Name(::prost::alloc::string::String),
@@ -117,8 +119,8 @@ pub struct ListBrandResponse {
 pub struct BrandExistsRequest {
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
-    #[prost(uint64, optional, tag = "2")]
-    pub id: ::core::option::Option<u64>,
+    #[prost(string, optional, tag = "2")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// 是否存在
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -796,8 +798,8 @@ pub mod goods_service_server {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct User {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub email: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
@@ -855,8 +857,8 @@ pub struct UserExistsRequest {
     pub email: ::prost::alloc::string::String,
     #[prost(string, optional, tag = "2")]
     pub nickname: ::core::option::Option<::prost::alloc::string::String>,
-    #[prost(uint64, optional, tag = "3")]
-    pub id: ::core::option::Option<u64>,
+    #[prost(string, optional, tag = "3")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -868,8 +870,8 @@ pub struct UserExistsResponse {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChangeUserStatusRequest {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
     #[prost(enumeration = "UserStatus", tag = "2")]
     pub status: i32,
 }
@@ -877,8 +879,8 @@ pub struct ChangeUserStatusRequest {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChangeUserPasswordRequest {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
     /// 新密码
     #[prost(string, tag = "2")]
     pub password: ::prost::alloc::string::String,
@@ -902,8 +904,8 @@ pub mod find_user_request {
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum By {
-        #[prost(uint64, tag = "1")]
-        Id(u64),
+        #[prost(string, tag = "1")]
+        Id(::prost::alloc::string::String),
         #[prost(string, tag = "2")]
         Email(::prost::alloc::string::String),
     }

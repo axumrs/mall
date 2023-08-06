@@ -1,13 +1,14 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{db, pb};
+use crate::{db, pb, utils::dt};
 
 #[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
 pub struct Brand {
-    pub id: u64,
+    pub id: String,
     pub name: String,
     pub logo: String,
     pub is_del: bool,
+    pub dateline: chrono::DateTime<chrono::Local>,
 }
 
 impl From<pb::Brand> for Brand {
@@ -17,6 +18,7 @@ impl From<pb::Brand> for Brand {
             name: b.name,
             logo: b.logo,
             is_del: b.is_del,
+            dateline: dt::prost2chrono(&b.dateline),
         }
     }
 }
@@ -28,12 +30,13 @@ impl Into<pb::Brand> for Brand {
             name: self.name,
             logo: self.logo,
             is_del: self.is_del,
+            dateline: dt::chrono2prost(&self.dateline),
         }
     }
 }
 
 pub enum BrandFindBy {
-    ID(u64),
+    ID(String),
     Name(String),
 }
 

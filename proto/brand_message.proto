@@ -2,9 +2,12 @@ syntax = "proto3";
 
 package pb;
 
+import "google/protobuf/timestamp.proto";
+
 message Brand {
-    uint64 id = 1;
+    string id = 1;
     string name = 2;
     string logo = 3;
     bool is_del = 4;
+    google.protobuf.Timestamp dateline = 5;
 }

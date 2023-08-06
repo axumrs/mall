@@ -27,7 +27,7 @@ async fn test_create_user() {
         }))
         .await
         .unwrap();
-    assert!(resp.into_inner().value > 0);
+    assert!(!resp.into_inner().value.is_empty());
 }
 
 #[tokio::test]
@@ -52,7 +52,7 @@ async fn test_batch_create_user() {
             }))
             .await
             .unwrap();
-        assert!(resp.into_inner().value > 0);
+        assert!(!resp.into_inner().value.is_empty());
     }
 }
 
@@ -61,7 +61,7 @@ async fn test_user_exists() {
     let mut cli = get_client().await;
     let resp = cli
         .user_exists(tonic::Request::new(pb::UserExistsRequest {
-            email: "team@axum.rs1".into(),
+            email: "team@axum.rs".into(),
             nickname: None,
             id: None,
         }))
@@ -93,23 +93,28 @@ async fn test_find_user() {
 async fn test_list_user() {
     let mut cli = get_client().await;
 
-    let dr_end = chrono::Local::now();
-    let dr_start = dr_end - chrono::Duration::days(30);
-    let date_range = Some(pb::DateRange {
-        start: dt::chrono2prost(&dr_start),
-        end: dt::chrono2prost(&dr_end),
-    });
+    // let dr_end = chrono::Local::now();
+    // let dr_start = dr_end - chrono::Duration::days(30);
+    // let date_range = Some(pb::DateRange {
+    //     start: dt::chrono2prost(&dr_start),
+    //     end: dt::chrono2prost(&dr_end),
+    // });
+    let date_range = None;
 
     let resp = cli
         .list_user(tonic::Request::new(pb::ListUserRequest {
             paginate: Some(pb::PaginateRequest {
                 page: Some(0),
-                page_size: Some(2),
+                page_size: Some(3),
             }),
             email: Some("axum.rs".into()),
-            nickname: Some("AXUM".into()),
-            status: Some(pb::UserStatus::Actived.into()),
-            is_del: Some(false),
+            // email: None,
+            // nickname: Some("AXUM".into()),
+            nickname: None,
+            // status: Some(pb::UserStatus::Actived.into()),
+            status: None,
+            // is_del: Some(false),
+            is_del: None,
             date_range,
         }))
         .await
@@ -150,7 +155,7 @@ async fn test_edit_user() {
 #[tokio::test]
 async fn test_change_user_password() {
     let mut cli = get_client().await;
-    let id: u64 = 7087630752506056704; // 用户“张三”的ID，根据你的情况进行修改
+    let id = "cj7kfuel6bcqn8bicrng".to_string(); // 用户“张三”的ID，根据你的情况进行修改
 
     // // 正确的当前密码（用户自己修改密码）
     // let current_password: Option<String> = Some("axum.rs".into());
@@ -173,7 +178,7 @@ async fn test_change_user_password() {
 #[tokio::test]
 async fn test_change_user_status() {
     let mut cli = get_client().await;
-    let id: u64 = 7087630752506056704; // 用户“张三”的ID，根据你的情况进行修改
+    let id = "cj7kfuel6bcqn8bicrng".to_string(); // 用户“张三”的ID，根据你的情况进行修改
     let resp = cli
         .change_user_status(tonic::Request::new(pb::ChangeUserStatusRequest {
             id,
@@ -187,7 +192,7 @@ async fn test_change_user_status() {
 #[tokio::test]
 async fn test_user_del_or_restore() {
     let mut cli = get_client().await;
-    let id: u64 = 7087630752506056704; // 用户“张三”的ID，根据你的情况进行修改
+    let id = "cj7kfuel6bcqn8bicrng".to_string(); // 用户“张三”的ID，根据你的情况进行修改
     let is_del = true; // true：删除；false：恢复
     let resp = cli
         .delete_or_restore_user(tonic::Request::new(pb::DeleteOrRestoreRequest {

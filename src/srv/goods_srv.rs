@@ -6,15 +6,13 @@ use crate::{
 };
 
 pub struct Goods {
-    pool: Arc<sqlx::MySqlPool>,
-    sf: Arc<snowflake::SnowflakeIdGenerator>,
+    pool: Arc<sqlx::PgPool>,
 }
 
 impl Goods {
-    pub fn new(pool: sqlx::MySqlPool, sf: snowflake::SnowflakeIdGenerator) -> Self {
+    pub fn new(pool: sqlx::PgPool) -> Self {
         Self {
             pool: Arc::new(pool),
-            sf: Arc::new(sf),
         }
     }
 }
@@ -38,10 +36,8 @@ impl GoodsService for Goods {
             .into_inner();
         if is_exists.value {
             return Err(tonic::Status::already_exists("品牌已存在"));
-        }
-
-        let mut sf = *self.sf;
-        let id = db::brand::create(&self.pool, &m, &mut sf)
+        };
+        let id = db::brand::create(&self.pool, &m)
             .await
             .map_err(|e| tonic::Status::internal(e.message))?;
 
@@ -53,9 +49,9 @@ impl GoodsService for Goods {
         request: tonic::Request<pb::Brand>,
     ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
         let r = request.into_inner();
-        let id = r.id;
+        let id = r.id.clone();
 
-        if id < 1 {
+        if (*id).is_empty() {
             return Err(tonic::Status::invalid_argument("请指定ID"));
         }
 

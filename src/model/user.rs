@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::{db, pb, utils::dt};
 
 #[derive(Debug, Default, Deserialize, Serialize, sqlx::Type, Clone, Copy)]
-#[repr(u8)]
+#[sqlx(type_name = "user_status")]
 pub enum UserStatus {
     /// 待激活
     #[default]
@@ -16,7 +16,7 @@ pub enum UserStatus {
 
 #[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
 pub struct User {
-    pub id: u64,
+    pub id: String,
     pub email: String,
     pub password: String,
     pub nickname: String,
@@ -77,7 +77,7 @@ impl Into<pb::User> for User {
 }
 
 pub enum UserFindBy {
-    ID(u64),
+    ID(String),
     Email(String),
 }
 

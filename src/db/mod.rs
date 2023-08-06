@@ -4,9 +4,9 @@ pub mod user;
 pub use paginate::*;
 
 pub async fn del_or_restore(
-    conn: &sqlx::MySqlPool,
+    conn: &sqlx::PgPool,
     table: &str,
-    id: u64,
+    id: String,
     is_del: bool,
 ) -> crate::Result<u64> {
     let mut q = sqlx::QueryBuilder::new("UPDATE ");

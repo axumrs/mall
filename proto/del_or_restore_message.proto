@@ -3,6 +3,6 @@ syntax = "proto3";
 package pb;
 
 message DeleteOrRestoreRequest {
-  uint64 id = 1;
+  string id = 1;
   bool is_del = 2;
 }

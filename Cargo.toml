@@ -15,9 +15,9 @@ chrono = { version="0.4", features=["serde"]}
 prost = "0.11"
 prost-types = "0.11"
 tonic = "0.9"
-sqlx = { version = "0.7", features = [ "runtime-tokio-native-tls" , "mysql" ,"chrono"] }
-rs-snowflake="0.6"
-bcrypt = "0.14"
+sqlx = { version = "0.7", features = [ "runtime-tokio" , "postgres" ,"chrono"] }
+# rs-snowflake="0.6"
+bcrypt = "0.15"
 #config = "0.13"
 dotenv = "0.15"
 tracing = "0.1"
@@ -27,6 +27,7 @@ headers="0.3"
 tower-http = { version = "0.4", features = ["cors"] }
 etcd-rs = "1.0"
 serde_json = "1"
+xid = "1"
 
 [build-dependencies]
 tonic-build = "0.9"

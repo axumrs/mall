@@ -2,4 +2,4 @@ syntax = "proto3";
 
 package pb;
 
-message ID { uint64 value = 1; }
+message ID { string value = 1; }

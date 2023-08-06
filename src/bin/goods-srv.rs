@@ -10,13 +10,12 @@ async fn main() {
 
     println!("{:?}", cfg);
 
-    let pool = sqlx::mysql::MySqlPoolOptions::new()
+    let pool = sqlx::postgres::PgPoolOptions::new()
         .connect(&cfg.db_dsn)
         .await
         .unwrap();
-    let sf = snowflake::SnowflakeIdGenerator::new(cfg.node.machine_id, cfg.node.node_id);
 
-    let srv = goods_srv::Goods::new(pool, sf);
+    let srv = goods_srv::Goods::new(pool);
 
     tonic::transport::Server::builder()
         .add_service(GoodsServiceServer::new(srv))

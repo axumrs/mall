@@ -1,4 +1,7 @@
-use mall::pb::{self, goods_service_client::GoodsServiceClient};
+use mall::{
+    pb::{self, goods_service_client::GoodsServiceClient},
+    utils::dt,
+};
 use tonic::transport::Channel;
 
 async fn get_client() -> GoodsServiceClient<Channel> {
@@ -11,16 +14,18 @@ async fn get_client() -> GoodsServiceClient<Channel> {
 #[tokio::test]
 async fn test_create_brand() {
     let mut cli = get_client().await;
+    let dateline = dt::chrono2prost(&chrono::Local::now());
     let resp = cli
         .create_brand(tonic::Request::new(mall::pb::Brand {
             name: "AXUM中文网".into(),
             logo: "https://file.axum.rs/asset/logo.png".into(),
+            dateline,
             ..Default::default()
         }))
         .await
         .unwrap()
         .into_inner();
-    assert!(resp.value > 0);
+    assert!(!resp.value.is_empty());
 }
 
 #[tokio::test]
@@ -44,16 +49,18 @@ async fn test_batch_create_brand() {
         ("Rust", "https://file.axum.rs/icons/rust/rust-plain.svg"),
         ("Go", "https://file.axum.rs/icons/go/go-original.svg"),
     ] {
+        let dateline = dt::chrono2prost(&chrono::Local::now());
         let resp = cli
             .create_brand(tonic::Request::new(mall::pb::Brand {
                 name: i.0.into(),
                 logo: i.1.into(),
+                dateline,
                 ..Default::default()
             }))
             .await
             .unwrap()
             .into_inner();
-        assert!(resp.value > 0);
+        assert!(!resp.value.is_empty());
     }
 }
 
@@ -126,7 +133,7 @@ async fn test_edit_brand() {
 #[tokio::test]
 async fn test_brand_del_or_restore() {
     let mut cli = get_client().await;
-    let id = 7087988042216116224 as u64; // “AXUM中文网”的ID，请根据你的情况进行修改
+    let id = "".to_string(); // “AXUM中文网”的ID，请根据你的情况进行修改
     let is_del = false; // true: 删除；false：还原
     let resp = cli
         .delete_or_restore_brand(tonic::Request::new(pb::DeleteOrRestoreRequest {

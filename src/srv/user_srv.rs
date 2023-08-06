@@ -6,15 +6,13 @@ use crate::{
 };
 
 pub struct User {
-    pool: Arc<sqlx::MySqlPool>,
-    sf: Arc<snowflake::SnowflakeIdGenerator>,
+    pool: Arc<sqlx::PgPool>,
 }
 
 impl User {
-    pub fn new(pool: sqlx::MySqlPool, sf: snowflake::SnowflakeIdGenerator) -> Self {
+    pub fn new(pool: sqlx::PgPool) -> Self {
         Self {
             pool: Arc::new(pool),
-            sf: Arc::new(sf),
         }
     }
 }
@@ -40,8 +38,8 @@ impl UserService for User {
         }
 
         let m = model::User::from(u);
-        let mut sf = *self.sf;
-        let id = db::user::create(&self.pool, &m, &mut sf)
+
+        let id = db::user::create(&self.pool, &m)
             .await
             .map_err(|e| tonic::Status::internal(e.message))?;
 
@@ -72,7 +70,7 @@ impl UserService for User {
             .user_exists(tonic::Request::new(pb::UserExistsRequest {
                 email: u.email.clone(),
                 nickname: Some(u.nickname.clone()),
-                id: Some(u.id),
+                id: Some(u.id.clone()),
             }))
             .await?
             .into_inner();

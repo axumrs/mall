@@ -11,7 +11,7 @@ enum UserStatus {
 }
 
 message User {
-  uint64 id = 1;
+  string id = 1;
   string email = 2;
   string password = 3;
   string nickname = 4;
