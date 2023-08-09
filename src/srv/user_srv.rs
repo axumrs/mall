@@ -5,6 +5,7 @@ use crate::{
     pb::{self, user_service_server::UserService, Id},
 };
 
+use super::err_to_tonic_status as ce2s;
 pub struct User {
     pool: Arc<sqlx::PgPool>,
 }
@@ -39,9 +40,7 @@ impl UserService for User {
 
         let m = model::User::from(u);
 
-        let id = db::user::create(&self.pool, &m)
-            .await
-            .map_err(|e| tonic::Status::internal(e.message))?;
+        let id = db::user::create(&self.pool, &m).await.map_err(ce2s)?;
 
         let resp = Id { value: id };
         Ok(tonic::Response::new(resp))
@@ -57,7 +56,7 @@ impl UserService for User {
         } = request.into_inner();
         let exists = db::user::exists(&self.pool, email, nickname, id)
             .await
-            .map_err(|e| tonic::Status::internal(e.message))?;
+            .map_err(ce2s)?;
         let resp = pb::UserExistsResponse { is_exists: exists };
         Ok(tonic::Response::new(resp))
     }
@@ -78,9 +77,7 @@ impl UserService for User {
             return Err(tonic::Status::already_exists("昵称已存在"));
         }
         let m = model::User::from(u);
-        let rows = db::user::edit(&self.pool, &m)
-            .await
-            .map_err(|e| tonic::Status::internal(e.message))?;
+        let rows = db::user::edit(&self.pool, &m).await.map_err(ce2s)?;
         Ok(tonic::Response::new(pb::Aff { rows }))
     }
     async fn delete_or_restore_user(
@@ -91,7 +88,7 @@ impl UserService for User {
 
         let rows = db::user::del_or_restore(&self.pool, id, is_del)
             .await
-            .map_err(|e| tonic::Status::internal(e.message))?;
+            .map_err(ce2s)?;
         Ok(tonic::Response::new(pb::Aff { rows }))
     }
     async fn change_user_status(
@@ -102,7 +99,7 @@ impl UserService for User {
         let status = model::UserStatus::from(pb::UserStatus::from_i32(status).unwrap());
         let rows = db::user::change_status(&self.pool, id, status)
             .await
-            .map_err(|e| tonic::Status::internal(e.message))?;
+            .map_err(ce2s)?;
         Ok(tonic::Response::new(pb::Aff { rows }))
     }
     async fn change_user_password(
@@ -117,7 +114,7 @@ impl UserService for User {
             request.current_password,
         )
         .await
-        .map_err(|e| tonic::Status::internal(e.message))?;
+        .map_err(ce2s)?;
         Ok(tonic::Response::new(pb::Aff { rows }))
     }
     async fn find_user(
@@ -127,7 +124,7 @@ impl UserService for User {
         let r = request.into_inner();
         let user = db::user::find(&self.pool, &model::UserFindRequest::from(r))
             .await
-            .map_err(|e| tonic::Status::internal(e.message))?;
+            .map_err(ce2s)?;
         let user: Option<pb::User> = match user {
             Some(user) => Some(user.into()),
             None => None,
@@ -141,7 +138,7 @@ impl UserService for User {
         let r = request.into_inner();
         let result = db::user::list(&self.pool, &model::UserListRequest::from(r))
             .await
-            .map_err(|e| tonic::Status::internal(e.message))?;
+            .map_err(ce2s)?;
         let paginate = result.to_pb();
         let mut users = Vec::with_capacity(result.data.len());
         for u in result.data {

@@ -6,6 +6,7 @@ pub enum Kind {
     Bcrypt,
     NotFound,
     IncorrectAuth,
+    InvalidArgument,
 }
 
 #[derive(Debug)]
@@ -43,6 +44,9 @@ impl Error {
     }
     pub fn incorrect_auth() -> Self {
         Self::incorrect_auth_with("用户名或密码错误")
+    }
+    pub fn invalid_argument(msg: &str) -> Self {
+        Self::from_str(Kind::InvalidArgument, msg)
     }
 }
 

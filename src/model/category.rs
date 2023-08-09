@@ -79,3 +79,55 @@ impl Into<pb::Category> for Category {
         }
     }
 }
+
+pub struct CategoryNameAndParentRequest {
+    pub name: String,
+    pub parent: String,
+}
+
+impl CategoryNameAndParentRequest {
+    pub fn is_empty(&self) -> bool {
+        self.name.is_empty()
+    }
+}
+
+impl From<pb::CategoryNameAndParentRequest> for CategoryNameAndParentRequest {
+    fn from(r: pb::CategoryNameAndParentRequest) -> Self {
+        Self {
+            name: r.name,
+            parent: r.parent,
+        }
+    }
+}
+
+impl Into<pb::CategoryNameAndParentRequest> for CategoryNameAndParentRequest {
+    fn into(self) -> pb::CategoryNameAndParentRequest {
+        pb::CategoryNameAndParentRequest {
+            name: self.name,
+            parent: self.parent,
+        }
+    }
+}
+
+pub struct CategoryExistsRequest {
+    pub name_and_parent: CategoryNameAndParentRequest,
+    pub id: Option<String>,
+}
+
+impl From<pb::CategoryExistsRequest> for CategoryExistsRequest {
+    fn from(r: pb::CategoryExistsRequest) -> Self {
+        Self {
+            name_and_parent: r.name_and_parent.unwrap_or_default().into(),
+            id: r.id,
+        }
+    }
+}
+
+impl Into<pb::CategoryExistsRequest> for CategoryExistsRequest {
+    fn into(self) -> pb::CategoryExistsRequest {
+        pb::CategoryExistsRequest {
+            name_and_parent: Some(self.name_and_parent.into()),
+            id: self.id,
+        }
+    }
+}

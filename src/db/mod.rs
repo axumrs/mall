@@ -2,6 +2,7 @@ pub mod brand;
 pub mod paginate;
 pub mod user;
 pub use paginate::*;
+pub mod category;
 
 pub async fn del_or_restore(
     conn: &sqlx::PgPool,
