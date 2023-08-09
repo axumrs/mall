@@ -3,13 +3,13 @@ syntax = "proto3";
 package pb;
 
 import "brand_message.proto";
+import "category_message.proto";
 import "aff_message.proto";
 import "id_message.proto";
 // import "daterange_message.proto";
 import "paginate_message.proto";
 import "del_or_restore_message.proto";
 
-// --- 查找品牌 ---
 // 查找品牌请求
 message FindBrandRequest {
   oneof by {
@@ -25,7 +25,6 @@ message FindBrandRequest {
 // 查找品牌响应
 message FindBrandResponse { optional Brand brand = 1; }
 
-// --- 品牌列表 ---
 // 品牌列表请求
 message ListBrandRequest {
   PaginateRequest paginate = 1;
@@ -39,7 +38,6 @@ message ListBrandResponse {
   repeated Brand brands = 2;
 }
 
-// --- 品牌是否存在 ---
 // 品牌是否存在请求
 message BrandExistsRequest {
   string name = 1;
@@ -48,6 +46,58 @@ message BrandExistsRequest {
 
 // 是否存在
 message IsExistsResponse { bool value = 1; }
+
+// 分类的名称和父分类
+message CategoryNameAndParentRequest {
+  string name = 1;
+  string parent = 2;
+};
+
+// 查找分类请求
+// message FindCategoryRequest {
+//   oneof by {
+//     // 根据ID查找
+//     string id = 1;
+//     // 根据名称和父分类查找
+//     CategoryNameAndParentRequest name_and_parent = 2;
+//   }
+//   // 限定是否删除
+//   optional bool is_del = 3;
+//   // 限定级别
+//   optional CategoryLevel level = 4;
+// }
+
+// 查找分类响应
+// message FindCategoryResponse { optional Category category = 1; }
+
+// 分类列表请求
+// message ListCategoryRequest {
+//   PaginateRequest paginate = 1;
+//   optional string name = 2;
+//   optional bool is_del = 3;
+//   optional string parent = 4;
+//   optional CategoryLevel level = 5;
+// }
+
+// 分类列表响应
+// message ListCategoryResponse {
+//   Paginate paginate = 1;
+//   repeated Category categoies = 2;
+// }
+
+// 分类是否存在请求
+message CategoryExistsRequest {
+  CategoryNameAndParentRequest name_and_parent = 1;
+  optional string id = 2;
+}
+
+// 分类树请求
+// message CategoryTreeRequest {
+//   optional string id = 1;
+//   optional string parent = 2;
+//   optional string path = 3;
+//   optional CategoryLevel level = 4;
+// }
 
 // 商品服务
 service GoodsService {
@@ -63,4 +113,19 @@ service GoodsService {
   rpc ListBrand(ListBrandRequest) returns (ListBrandResponse);
   // 品牌是否存在
   rpc BrandExists(BrandExistsRequest) returns (IsExistsResponse);
+
+  // 创建分类
+  rpc CreateCategory(Category) returns (ID);
+  // 修改分类
+  rpc EditCategory(Category) returns (Aff);
+  // 删除或还原分类
+  rpc DeleteOrRestoreCategory(DeleteOrRestoreRequest) returns (Aff);
+  // 分类是否存在
+  rpc CategoryExists(CategoryExistsRequest) returns (IsExistsResponse);
+  // 查找分类
+  // rpc FindCategory(FindCategoryRequest) returns (FindCategoryResponse);
+  // 分类列表
+  // rpc ListCategory(ListCategoryRequest) returns (ListCategoryResponse);
+  // 分类树
+  // rpc CategoryTree(CategoryTreeRequest) returns (CategoryTreeResponse);
 }

@@ -14,6 +14,56 @@ pub struct Brand {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Category {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub parent: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub path: ::prost::alloc::string::String,
+    #[prost(enumeration = "CategoryLevel", tag = "5")]
+    pub level: i32,
+    #[prost(message, optional, tag = "6")]
+    pub dateline: ::core::option::Option<::prost_types::Timestamp>,
+    #[prost(bool, tag = "7")]
+    pub is_del: bool,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum CategoryLevel {
+    Unspecified = 0,
+    Level1 = 1,
+    Level2 = 2,
+    Level3 = 3,
+}
+impl CategoryLevel {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            CategoryLevel::Unspecified => "UNSPECIFIED",
+            CategoryLevel::Level1 => "LEVEL_1",
+            CategoryLevel::Level2 => "LEVEL_2",
+            CategoryLevel::Level3 => "LEVEL_3",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "UNSPECIFIED" => Some(Self::Unspecified),
+            "LEVEL_1" => Some(Self::Level1),
+            "LEVEL_2" => Some(Self::Level2),
+            "LEVEL_3" => Some(Self::Level3),
+            _ => None,
+        }
+    }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Aff {
     #[prost(uint64, tag = "1")]
     pub rows: u64,
@@ -60,7 +110,6 @@ pub struct DeleteOrRestoreRequest {
     #[prost(bool, tag = "2")]
     pub is_del: bool,
 }
-/// --- 查找品牌 ---
 /// 查找品牌请求
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -91,7 +140,6 @@ pub struct FindBrandResponse {
     #[prost(message, optional, tag = "1")]
     pub brand: ::core::option::Option<Brand>,
 }
-/// --- 品牌列表 ---
 /// 品牌列表请求
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -112,7 +160,6 @@ pub struct ListBrandResponse {
     #[prost(message, repeated, tag = "2")]
     pub brands: ::prost::alloc::vec::Vec<Brand>,
 }
-/// --- 品牌是否存在 ---
 /// 品牌是否存在请求
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -128,6 +175,24 @@ pub struct BrandExistsRequest {
 pub struct IsExistsResponse {
     #[prost(bool, tag = "1")]
     pub value: bool,
+}
+/// 分类的名称和父分类
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CategoryNameAndParentRequest {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub parent: ::prost::alloc::string::String,
+}
+/// 分类是否存在请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CategoryExistsRequest {
+    #[prost(message, optional, tag = "1")]
+    pub name_and_parent: ::core::option::Option<CategoryNameAndParentRequest>,
+    #[prost(string, optional, tag = "2")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Generated client implementations.
 pub mod goods_service_client {
@@ -359,6 +424,101 @@ pub mod goods_service_client {
                 .insert(GrpcMethod::new("pb.GoodsService", "BrandExists"));
             self.inner.unary(req, path, codec).await
         }
+        /// 创建分类
+        pub async fn create_category(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Category>,
+        ) -> std::result::Result<tonic::Response<super::Id>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/CreateCategory",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "CreateCategory"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 修改分类
+        pub async fn edit_category(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Category>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/EditCategory",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "EditCategory"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 删除或还原分类
+        pub async fn delete_or_restore_category(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteOrRestoreRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/DeleteOrRestoreCategory",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "DeleteOrRestoreCategory"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 分类是否存在
+        pub async fn category_exists(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CategoryExistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::IsExistsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/CategoryExists",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "CategoryExists"));
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -403,6 +563,29 @@ pub mod goods_service_server {
         async fn brand_exists(
             &self,
             request: tonic::Request<super::BrandExistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::IsExistsResponse>,
+            tonic::Status,
+        >;
+        /// 创建分类
+        async fn create_category(
+            &self,
+            request: tonic::Request<super::Category>,
+        ) -> std::result::Result<tonic::Response<super::Id>, tonic::Status>;
+        /// 修改分类
+        async fn edit_category(
+            &self,
+            request: tonic::Request<super::Category>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 删除或还原分类
+        async fn delete_or_restore_category(
+            &self,
+            request: tonic::Request<super::DeleteOrRestoreRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 分类是否存在
+        async fn category_exists(
+            &self,
+            request: tonic::Request<super::CategoryExistsRequest>,
         ) -> std::result::Result<
             tonic::Response<super::IsExistsResponse>,
             tonic::Status,
@@ -739,6 +922,186 @@ pub mod goods_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = BrandExistsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/CreateCategory" => {
+                    #[allow(non_camel_case_types)]
+                    struct CreateCategorySvc<T: GoodsService>(pub Arc<T>);
+                    impl<T: GoodsService> tonic::server::UnaryService<super::Category>
+                    for CreateCategorySvc<T> {
+                        type Response = super::Id;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Category>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).create_category(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = CreateCategorySvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/EditCategory" => {
+                    #[allow(non_camel_case_types)]
+                    struct EditCategorySvc<T: GoodsService>(pub Arc<T>);
+                    impl<T: GoodsService> tonic::server::UnaryService<super::Category>
+                    for EditCategorySvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Category>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).edit_category(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = EditCategorySvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/DeleteOrRestoreCategory" => {
+                    #[allow(non_camel_case_types)]
+                    struct DeleteOrRestoreCategorySvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::DeleteOrRestoreRequest>
+                    for DeleteOrRestoreCategorySvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::DeleteOrRestoreRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).delete_or_restore_category(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = DeleteOrRestoreCategorySvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/CategoryExists" => {
+                    #[allow(non_camel_case_types)]
+                    struct CategoryExistsSvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::CategoryExistsRequest>
+                    for CategoryExistsSvc<T> {
+                        type Response = super::IsExistsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::CategoryExistsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).category_exists(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = CategoryExistsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

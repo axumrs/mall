@@ -132,4 +132,32 @@ impl GoodsService for Goods {
             .map_err(|e| tonic::Status::internal(e.message))?;
         Ok(tonic::Response::new(pb::IsExistsResponse { value: rs }))
     }
+    /// 创建分类
+    async fn create_category(
+        &self,
+        request: tonic::Request<pb::Category>,
+    ) -> std::result::Result<tonic::Response<pb::Id>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 修改分类
+    async fn edit_category(
+        &self,
+        request: tonic::Request<pb::Category>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 删除或还原分类
+    async fn delete_or_restore_category(
+        &self,
+        request: tonic::Request<pb::DeleteOrRestoreRequest>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 分类是否存在
+    async fn category_exists(
+        &self,
+        request: tonic::Request<pb::CategoryExistsRequest>,
+    ) -> std::result::Result<tonic::Response<pb::IsExistsResponse>, tonic::Status> {
+        unimplemented!()
+    }
 }

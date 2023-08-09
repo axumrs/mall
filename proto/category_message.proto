@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/timestamp.proto";
+
+enum CategoryLevel {
+  UNSPECIFIED = 0;
+  LEVEL_1 = 1;
+  LEVEL_2 = 2;
+  LEVEL_3 = 3;
+}
+
+message Category {
+  string id = 1;
+  string name = 2;
+  string parent = 3;
+  string path = 4;
+  CategoryLevel level = 5;
+  google.protobuf.Timestamp dateline = 6;
+  bool is_del = 7;
+}
