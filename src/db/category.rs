@@ -34,6 +34,22 @@ pub async fn exists<'a>(
     Ok(count.0 > 0)
 }
 
+/// 更新分类
+pub async fn edit<'a>(
+    e: impl sqlx::PgExecutor<'a>,
+    c: &model::Category,
+) -> Result<u64, sqlx::Error> {
+    unimplemented!()
+}
+
+/// 级联更新分类
+pub async fn edit_cascade<'a>(
+    e: impl sqlx::PgExecutor<'a>,
+    parent: &str,
+) -> Result<u64, sqlx::Error> {
+    unimplemented!()
+}
+
 #[cfg(test)]
 mod test {
     use crate::model;
@@ -120,6 +136,14 @@ mod test {
                 }
             }
         }
+
+        tx.commit().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_db_edit_category() {
+        let conn = get_conn().await;
+        let mut tx = conn.begin().await.unwrap();
 
         tx.commit().await.unwrap();
     }
