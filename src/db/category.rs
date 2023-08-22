@@ -39,16 +39,31 @@ pub async fn edit<'a>(
     e: impl sqlx::PgExecutor<'a>,
     c: &model::Category,
 ) -> Result<u64, sqlx::Error> {
-    unimplemented!()
+    let sql = r#"UPDATE categoies SET
+	"name" = (SELECT COALESCE ((SELECT LEFT( $1 || '#' || name, 100 )  FROM categoies WHERE name = $2 and id<>$1), $2)),
+	parent = $3,
+	"path" = (SELECT COALESCE  ((SELECT "path" FROM categoies  WHERE id=$3) , '//')) || $1 || '/',
+	"level" = (SELECT CASE COALESCE ((SELECT "level" FROM categoies where id=$3), 'Unspecified'::category_level) WHEN 'Level1'::category_level THEN 'Level2'::category_level WHEN 'Level2'::category_level THEN 'Level3'::category_level ELSE 'Level1'::category_level END)
+WHERE id = $1"#;
+    let r = sqlx::query(sql)
+        .bind(&c.id)
+        .bind(&c.name)
+        .bind(&c.parent)
+        .execute(e)
+        .await?;
+    Ok(r.rows_affected())
 }
 
-/// 级联更新分类
-pub async fn edit_cascade<'a>(
+/// 获取子分类
+pub async fn get_children<'a>(
     e: impl sqlx::PgExecutor<'a>,
+    parent_path: &str,
     parent: &str,
-) -> Result<u64, sqlx::Error> {
-    unimplemented!()
+) -> Result<Vec<model::Category>, sqlx::Error> {
+    let parent_path = format!("{}%/", parent_path);
+    sqlx::query_as(r#"SELECT id, "name", parent, "path", "level", dateline, is_del FROM categoies WHERE "path" LIKE $1 AND id<>$2 ORDER BY "level" ASC, id ASC"#).bind(&parent_path).bind(parent).fetch_all(e).await
 }
+
 
 #[cfg(test)]
 mod test {
@@ -144,7 +159,35 @@ mod test {
     async fn test_db_edit_category() {
         let conn = get_conn().await;
         let mut tx = conn.begin().await.unwrap();
+        let cate: model::Category = sqlx::query_as("SELECT * FROM categoies WHERE id=$1")
+            .bind("cji1llcdrfap1bhmp7f0")
+            .fetch_one(&mut *tx)
+            .await
+            .unwrap();
 
+        println!("{:?}", cate);
+        let cate = model::Category {
+            name: "一级分类2".to_string(),
+            ..cate
+        };
+        if let Err(e) = super::edit(&mut *tx, &cate).await {
+            tx.rollback().await.unwrap();
+            panic!("{}", e.to_string());
+        }
+        // 更新子分类
+
+        let children = super::get_children(&mut *tx, &cate.path, &cate.id)
+            .await
+            .unwrap();
+        for c in children.iter() {
+            println!("{:?}", c);
+            {
+                if let Err(e) = super::edit(&mut *tx, c).await {
+                    tx.rollback().await.unwrap();
+                    panic!("{}", e.to_string());
+                }
+            }
+        }
         tx.commit().await.unwrap();
     }
 }

@@ -1,5 +1,74 @@
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct User {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub email: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub password: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub nickname: ::prost::alloc::string::String,
+    #[prost(enumeration = "UserStatus", tag = "5")]
+    pub status: i32,
+    #[prost(message, optional, tag = "6")]
+    pub dateline: ::core::option::Option<::prost_types::Timestamp>,
+    #[prost(bool, tag = "7")]
+    pub is_del: bool,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum UserStatus {
+    Pending = 0,
+    Actived = 1,
+    Freezed = 2,
+}
+impl UserStatus {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            UserStatus::Pending => "PENDING",
+            UserStatus::Actived => "ACTIVED",
+            UserStatus::Freezed => "FREEZED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "PENDING" => Some(Self::Pending),
+            "ACTIVED" => Some(Self::Actived),
+            "FREEZED" => Some(Self::Freezed),
+            _ => None,
+        }
+    }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DateRange {
+    #[prost(message, optional, tag = "1")]
+    pub start: ::core::option::Option<::prost_types::Timestamp>,
+    #[prost(message, optional, tag = "2")]
+    pub end: ::core::option::Option<::prost_types::Timestamp>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteOrRestoreRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(bool, tag = "2")]
+    pub is_del: bool,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Aff {
+    #[prost(uint64, tag = "1")]
+    pub rows: u64,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Brand {
     #[prost(string, tag = "1")]
     pub id: ::prost::alloc::string::String,
@@ -64,12 +133,6 @@ impl CategoryLevel {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Aff {
-    #[prost(uint64, tag = "1")]
-    pub rows: u64,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Id {
     #[prost(string, tag = "1")]
     pub value: ::prost::alloc::string::String,
@@ -101,14 +164,6 @@ pub struct PaginateRequest {
     /// 每页条数
     #[prost(uint32, optional, tag = "2")]
     pub page_size: ::core::option::Option<u32>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeleteOrRestoreRequest {
-    #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(bool, tag = "2")]
-    pub is_del: bool,
 }
 /// 查找品牌请求
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1157,61 +1212,6 @@ pub mod goods_service_server {
     impl<T: GoodsService> tonic::server::NamedService for GoodsServiceServer<T> {
         const NAME: &'static str = "pb.GoodsService";
     }
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct User {
-    #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub email: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub password: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub nickname: ::prost::alloc::string::String,
-    #[prost(enumeration = "UserStatus", tag = "5")]
-    pub status: i32,
-    #[prost(message, optional, tag = "6")]
-    pub dateline: ::core::option::Option<::prost_types::Timestamp>,
-    #[prost(bool, tag = "7")]
-    pub is_del: bool,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum UserStatus {
-    Pending = 0,
-    Actived = 1,
-    Freezed = 2,
-}
-impl UserStatus {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            UserStatus::Pending => "PENDING",
-            UserStatus::Actived => "ACTIVED",
-            UserStatus::Freezed => "FREEZED",
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "PENDING" => Some(Self::Pending),
-            "ACTIVED" => Some(Self::Actived),
-            "FREEZED" => Some(Self::Freezed),
-            _ => None,
-        }
-    }
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DateRange {
-    #[prost(message, optional, tag = "1")]
-    pub start: ::core::option::Option<::prost_types::Timestamp>,
-    #[prost(message, optional, tag = "2")]
-    pub end: ::core::option::Option<::prost_types::Timestamp>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

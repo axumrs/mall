@@ -28,6 +28,7 @@ tower-http = { version = "0.4", features = ["cors"] }
 etcd-rs = "1.0"
 serde_json = "1"
 xid = "1"
+utf8_slice = "1"
 
 [build-dependencies]
 tonic-build = "0.9"
