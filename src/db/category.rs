@@ -79,6 +79,11 @@ pub async fn edit_name<'a>(
     Ok(r.rows_affected())
 }
 
+/// 删除或修改
+pub async fn del_or_restore(conn: &sqlx::PgPool, id: String, is_del: bool) -> crate::Result<u64> {
+    super::del_or_restore(conn, "categoies", id, is_del).await
+}
+
 #[cfg(test)]
 mod test {
     use crate::model;
@@ -244,5 +249,14 @@ mod test {
             .unwrap();
 
         tx.commit().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_db_del_or_restore_category() {
+        let conn = get_conn().await;
+        let aff = super::del_or_restore(&conn, "cji1llcdrfap1bhmp7f0".to_string(), true)
+            .await
+            .unwrap();
+        assert!(aff > 0);
     }
 }

@@ -236,7 +236,11 @@ impl GoodsService for Goods {
         &self,
         request: tonic::Request<pb::DeleteOrRestoreRequest>,
     ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
-        unimplemented!()
+        let req = request.into_inner();
+        let rows = db::category::del_or_restore(&self.pool, req.id, req.is_del)
+            .await
+            .map_err(ce2s)?;
+        Ok(tonic::Response::new(pb::Aff { rows }))
     }
     /// 分类是否存在
     async fn category_exists(
