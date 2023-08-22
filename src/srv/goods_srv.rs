@@ -172,6 +172,40 @@ impl GoodsService for Goods {
     ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
         unimplemented!()
     }
+    /// 修改分类名称
+    async fn edit_category_name(
+        &self,
+        request: tonic::Request<pb::Category>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        let cate = model::Category::from(request.into_inner());
+        let exists_req = model::CategoryExistsRequest {
+            name_and_parent: model::CategoryNameAndParentRequest {
+                name: cate.name.clone(),
+                parent: cate.parent.clone(),
+            },
+            id: Some(cate.id.clone()),
+        };
+        let mut tx = self.pool.begin().await.map_err(e2s)?;
+
+        let exists = match db::category::exists(&mut *tx, &exists_req).await {
+            Ok(exists) => exists,
+            Err(e) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+        };
+        if exists {
+            tx.rollback().await.map_err(e2s)?;
+            return Err(tonic::Status::already_exists("同名的分类已存在"));
+        }
+
+        let rows = db::category::edit_name(&mut *tx, &cate.id, &cate.name)
+            .await
+            .map_err(e2s)?;
+
+        tx.commit().await.map_err(e2s)?;
+        Ok(tonic::Response::new(pb::Aff { rows }))
+    }
     /// 删除或还原分类
     async fn delete_or_restore_category(
         &self,

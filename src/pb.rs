@@ -525,6 +525,29 @@ pub mod goods_service_client {
                 .insert(GrpcMethod::new("pb.GoodsService", "EditCategory"));
             self.inner.unary(req, path, codec).await
         }
+        /// 修改分类名称
+        pub async fn edit_category_name(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Category>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/EditCategoryName",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "EditCategoryName"));
+            self.inner.unary(req, path, codec).await
+        }
         /// 删除或还原分类
         pub async fn delete_or_restore_category(
             &mut self,
@@ -629,6 +652,11 @@ pub mod goods_service_server {
         ) -> std::result::Result<tonic::Response<super::Id>, tonic::Status>;
         /// 修改分类
         async fn edit_category(
+            &self,
+            request: tonic::Request<super::Category>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 修改分类名称
+        async fn edit_category_name(
             &self,
             request: tonic::Request<super::Category>,
         ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
@@ -1065,6 +1093,50 @@ pub mod goods_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = EditCategorySvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/EditCategoryName" => {
+                    #[allow(non_camel_case_types)]
+                    struct EditCategoryNameSvc<T: GoodsService>(pub Arc<T>);
+                    impl<T: GoodsService> tonic::server::UnaryService<super::Category>
+                    for EditCategoryNameSvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Category>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).edit_category_name(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = EditCategoryNameSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

@@ -204,4 +204,45 @@ mod test {
         }
         tx.commit().await.unwrap();
     }
+
+    #[tokio::test]
+    async fn test_db_edit_name_for_category() {
+        let conn = get_conn().await;
+        let mut tx = conn.begin().await.unwrap();
+        let cate: model::Category = sqlx::query_as("SELECT * FROM categoies WHERE id=$1")
+            .bind("cji1llcdrfap1bhmp7f0")
+            .fetch_one(&mut *tx)
+            .await
+            .unwrap();
+
+        println!("{:?}", cate);
+
+        let cate = model::Category {
+            name: "一级分类3".to_string(),
+            ..cate
+        };
+
+        let exists = super::exists(
+            &mut *tx,
+            &model::CategoryExistsRequest {
+                name_and_parent: model::CategoryNameAndParentRequest {
+                    name: cate.name.clone(),
+                    parent: cate.parent.clone(),
+                },
+                id: Some(cate.id.clone()),
+            },
+        )
+        .await
+        .unwrap();
+
+        if exists {
+            panic!("同名的分类已存在");
+        }
+
+        super::edit_name(&mut *tx, &cate.id, &cate.name)
+            .await
+            .unwrap();
+
+        tx.commit().await.unwrap();
+    }
 }

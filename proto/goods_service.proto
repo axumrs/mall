@@ -118,6 +118,8 @@ service GoodsService {
   rpc CreateCategory(Category) returns (ID);
   // 修改分类
   rpc EditCategory(Category) returns (Aff);
+  // 修改分类名称
+  rpc EditCategoryName(Category) returns (Aff);
   // 删除或还原分类
   rpc DeleteOrRestoreCategory(DeleteOrRestoreRequest) returns (Aff);
   // 分类是否存在
