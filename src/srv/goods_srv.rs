@@ -170,6 +170,31 @@ impl GoodsService for Goods {
         &self,
         request: tonic::Request<pb::Category>,
     ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        let cate = model::Category::from(request.into_inner());
+        let mut tx = self.pool.begin().await.map_err(e2s)?;
+
+        if let Err(e) = db::category::edit(&mut *tx, &cate).await {
+            tx.rollback().await.map_err(e2s)?;
+            return Err(e2s(e));
+        }
+
+        // 子分类
+        let children = match db::category::get_children(&mut *tx, &cate.path, &cate.id).await {
+            Ok(children) => children,
+            Err(e) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+        };
+
+        for c in children.iter() {
+            if let Err(e) = db::category::edit(&mut *tx, c).await {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+        }
+
+        tx.commit().await.map_err(e2s)?;
         unimplemented!()
     }
     /// 修改分类名称
