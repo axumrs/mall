@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package pb;
+
+import "category_message.proto";
+import "brand_message.proto";
+
+message CategoryWithBrands {
+  Category category = 1;
+  repeated Brand brands = 2;
+}
+
+message BrandWithCategoies {
+  Brand brand = 1;
+  repeated Category categoies = 2;
+}

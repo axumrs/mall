@@ -2160,3 +2160,19 @@ pub mod user_service_server {
         const NAME: &'static str = "pb.UserService";
     }
 }
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CategoryWithBrands {
+    #[prost(message, optional, tag = "1")]
+    pub category: ::core::option::Option<Category>,
+    #[prost(message, repeated, tag = "2")]
+    pub brands: ::prost::alloc::vec::Vec<Brand>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BrandWithCategoies {
+    #[prost(message, optional, tag = "1")]
+    pub brand: ::core::option::Option<Brand>,
+    #[prost(message, repeated, tag = "2")]
+    pub categoies: ::prost::alloc::vec::Vec<Category>,
+}

@@ -34,9 +34,7 @@ CREATE TABLE IF NOT EXISTS "categoies" ( -- 商品分类
 );
 
 CREATE TABLE IF NOT EXISTS "category_brands" ( -- 商品分类与品牌
-    "id" CHAR(20) PRIMARY KEY,
     "brand_id" CHAR(20) NOT NULL, -- 品牌ID
     "category_id" CHAR(20) NOT NULL, -- 分类ID
-    "is_del" BOOLEAN NOT NULL DEFAULT FALSE,
-    UNIQUE("brand_id", "category_id")
+    PRIMARY KEY("brand_id", "category_id")
 );
