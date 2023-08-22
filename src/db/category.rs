@@ -64,6 +64,20 @@ pub async fn get_children<'a>(
     sqlx::query_as(r#"SELECT id, "name", parent, "path", "level", dateline, is_del FROM categoies WHERE "path" LIKE $1 AND id<>$2 ORDER BY "level" ASC, id ASC"#).bind(&parent_path).bind(parent).fetch_all(e).await
 }
 
+/// 修改名称
+pub async fn edit_name<'a>(
+    e: impl sqlx::PgExecutor<'a>,
+    id: &str,
+    name: &str,
+) -> Result<u64, sqlx::Error> {
+    let r = sqlx::query("UPDATE categoies SET name=$1 WHERE id=$2")
+        .bind(name)
+        .bind(id)
+        .execute(e)
+        .await?;
+
+    Ok(r.rows_affected())
+}
 
 #[cfg(test)]
 mod test {
