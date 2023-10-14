@@ -1,5 +1,6 @@
 use crate::{model, utils};
 
+/// 创建
 pub async fn create<'a, E>(e: E, c: &model::Category) -> Result<String, sqlx::Error>
 where
     E: sqlx::PgExecutor<'a>,
@@ -16,6 +17,7 @@ where
     Ok(id)
 }
 
+/// 是否存在
 pub async fn exists<'a>(
     e: impl sqlx::PgExecutor<'a>,
     r: &model::CategoryExistsRequest,
@@ -82,6 +84,12 @@ pub async fn edit_name<'a>(
 /// 删除或修改
 pub async fn del_or_restore(conn: &sqlx::PgPool, id: String, is_del: bool) -> crate::Result<u64> {
     super::del_or_restore(conn, "categoies", id, is_del).await
+}
+
+/// 分类树
+pub async fn tree<'a>(e: impl sqlx::PgExecutor<'a>) -> Result<Vec<model::TreePure>, sqlx::Error> {
+    let mut q = sqlx::QueryBuilder::new(r#""#);
+    q.build_query_as().fetch_all(e).await
 }
 
 #[cfg(test)]
@@ -258,5 +266,14 @@ mod test {
             .await
             .unwrap();
         assert!(aff > 0);
+    }
+
+    #[tokio::test]
+    async fn test_db_tree_pure() {
+        let conn = get_conn().await;
+        let tree = super::tree(&conn).await.unwrap();
+        for t in tree.iter() {
+            println!("{:?}", t);
+        }
     }
 }

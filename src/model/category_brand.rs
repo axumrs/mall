@@ -260,3 +260,11 @@ impl Into<pb::BrandWithCategoies> for BrandWithCategoies {
         }
     }
 }
+
+/// 分类树，带品牌信息。对应数据库 `v_tree` 视图
+#[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
+pub struct Tree {
+    #[sqlx(flatten)]
+    pub category_with_brands: CategoryWithBrands,
+    pub fullname: String,
+}

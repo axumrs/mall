@@ -23,6 +23,7 @@ pub async fn set<'a>(
     return Ok(r.rows_affected());
 }
 
+/// 分类品牌列表
 pub async fn list_with_brands<'a>(
     e: impl sqlx::PgExecutor<'a>,
 ) -> Result<Vec<model::CategoryWithBrands>, sqlx::Error> {
@@ -32,11 +33,40 @@ pub async fn list_with_brands<'a>(
     q.build_query_as().fetch_all(e).await
 }
 
+/// 品牌分类列表
 pub async fn list_with_categoies<'a>(
     e: impl sqlx::PgExecutor<'a>,
 ) -> Result<Vec<model::BrandWithCategoies>, sqlx::Error> {
     let mut q = sqlx::QueryBuilder::new(
         r#"SELECT brand_id, brand_name, brand_logo, brand_is_del, brand_dateline, ids, names, names_str, parents, levels, paths, datelines, is_dels FROM v_brand_with_categoies"#,
+    );
+    q.build_query_as().fetch_all(e).await
+}
+
+/// 查找带品牌信息的分类
+pub async fn find_category<'a>(
+    e: impl sqlx::PgExecutor<'a>,
+) -> Result<Option<model::CategoryWithBrands>, sqlx::Error> {
+    let mut q = sqlx::QueryBuilder::new(
+        r#"SELECT id, "name", parent, "path", "level", dateline, is_del, brand_ids, brand_names, brand_logos, brand_is_dels, brand_datelines, brand_names_str FROM v_category_with_brands ORDER BY id DESC"#,
+    );
+    q.build_query_as().fetch_optional(e).await
+}
+
+/// 查找带分类信息的品牌
+pub async fn find_brand<'a>(
+    e: impl sqlx::PgExecutor<'a>,
+) -> Result<Option<model::BrandWithCategoies>, sqlx::Error> {
+    let mut q: sqlx::QueryBuilder<'_, sqlx_postgres::Postgres> = sqlx::QueryBuilder::new(
+        r#"SELECT brand_id, brand_name, brand_logo, brand_is_del, brand_dateline, ids, names, names_str, parents, levels, paths, datelines, is_dels FROM v_brand_with_categoies"#,
+    );
+    q.build_query_as().fetch_optional(e).await
+}
+
+/// 分类树，含品牌信息
+pub async fn tree<'a>(e: impl sqlx::PgExecutor<'a>) -> Result<Vec<model::Tree>, sqlx::Error> {
+    let mut q = sqlx::QueryBuilder::new(
+        r#"SELECT id, "name", parent, "path", "level", dateline, is_del, brand_ids, brand_names, brand_logos, brand_is_dels, brand_datelines, brand_names_str, fullname FROM v_tree"#,
     );
     q.build_query_as().fetch_all(e).await
 }
@@ -55,7 +85,6 @@ pub async fn clear<'a>(
 
 #[cfg(test)]
 mod test {
-    use crate::{db::category, model};
 
     async fn get_conn() -> sqlx::PgPool {
         sqlx::postgres::PgPoolOptions::new()
@@ -129,6 +158,15 @@ mod test {
         let bcs = super::list_with_categoies(&conn).await.unwrap();
         for bc in bcs.iter() {
             println!("{:?}", bc.levels());
+        }
+    }
+
+    #[tokio::test]
+    async fn test_db_tree() {
+        let conn = get_conn().await;
+        let trees = super::tree(&conn).await.unwrap();
+        for tree in trees.iter() {
+            println!("{:?}", tree);
         }
     }
 }

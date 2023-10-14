@@ -54,3 +54,18 @@ SELECT DISTINCT cb.brand_id , brand_name , brand_logo , brand_is_del , brand_dat
 	array_agg(is_del) AS is_dels 
 	FROM  v_brand_categoies GROUP BY brand_id) AS t
 WHERE t.brand_id = cb.brand_id;
+
+-- 分类树，带品牌信息
+CREATE OR REPLACE RECURSIVE VIEW v_tree (id, "name", parent, "path", "level", dateline, is_del, brand_ids, brand_names, brand_logos, brand_is_dels, brand_datelines, brand_names_str, fullname) AS 
+SELECT id, "name", parent, "path", "level" , dateline, is_del, brand_ids, brand_names, brand_logos, brand_is_dels, brand_datelines, brand_names_str, "name"::text AS fullname FROM v_category_with_brands WHERE parent = ''
+UNION ALL
+SELECT c.id, c."name", c.parent, c."path", c."level", c.dateline, c.is_del, c.brand_ids, c.brand_names, c.brand_logos, c.brand_is_dels, c.brand_datelines, c.brand_names_str, p.name || '>' || c.name AS fullname FROM v_category_with_brands AS c
+INNER JOIN v_tree AS p ON c.parent = p.id AND c.is_del = p.is_del
+;
+
+-- 分类树，不带品牌信息
+CREATE OR REPLACE RECURSIVE VIEW v_tree_pure (id, "name", parent, "path", "level", dateline, is_del, fullname) AS
+SELECT id, "name", parent, "path", "level", dateline, is_del, "name"::TEXT  AS fullname FROM categoies WHERE parent = ''
+UNION  ALL 
+SELECT c.id, c."name", c.parent, c."path", c."level", c.dateline, c.is_del, p.name || '>' || c.name AS fullname FROM categoies AS c
+INNER JOIN v_tree_pure AS p ON c.parent = p.id AND c.is_del = p.is_del;

@@ -4,7 +4,7 @@ use crate::{pb, utils::dt};
 
 #[derive(Debug, Default, Deserialize, Serialize, sqlx::Type, Clone, Copy)]
 #[sqlx(type_name = "category_level")]
-#[repr(i32)]
+// #[repr(i32)]
 pub enum CategoryLevel {
     /// 未指定
     #[default]
@@ -144,4 +144,12 @@ impl Into<pb::CategoryExistsRequest> for CategoryExistsRequest {
             id: self.id,
         }
     }
+}
+
+/// 分类树。对应数据库 `v_tree_pure` 视图
+#[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
+pub struct TreePure {
+    #[sqlx(flatten)]
+    pub category: Category,
+    pub fullname: String,
 }
