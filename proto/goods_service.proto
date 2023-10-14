@@ -4,6 +4,7 @@ package pb;
 
 import "brand_message.proto";
 import "category_message.proto";
+import "category_brand_message.proto";
 import "aff_message.proto";
 import "id_message.proto";
 // import "daterange_message.proto";
@@ -54,36 +55,36 @@ message CategoryNameAndParentRequest {
 };
 
 // 查找分类请求
-// message FindCategoryRequest {
-//   oneof by {
-//     // 根据ID查找
-//     string id = 1;
-//     // 根据名称和父分类查找
-//     CategoryNameAndParentRequest name_and_parent = 2;
-//   }
-//   // 限定是否删除
-//   optional bool is_del = 3;
-//   // 限定级别
-//   optional CategoryLevel level = 4;
-// }
+message FindCategoryRequest {
+  oneof by {
+    // 根据ID查找
+    string id = 1;
+    // 根据名称和父分类查找
+    CategoryNameAndParentRequest name_and_parent = 2;
+  }
+  // 限定是否删除
+  optional bool is_del = 3;
+  // 限定级别
+  optional CategoryLevel level = 4;
+}
 
 // 查找分类响应
-// message FindCategoryResponse { optional Category category = 1; }
+message FindCategoryResponse { optional Category category = 1; }
 
 // 分类列表请求
-// message ListCategoryRequest {
-//   PaginateRequest paginate = 1;
-//   optional string name = 2;
-//   optional bool is_del = 3;
-//   optional string parent = 4;
-//   optional CategoryLevel level = 5;
-// }
+message ListCategoryRequest {
+  PaginateRequest paginate = 1;
+  optional string name = 2;
+  optional bool is_del = 3;
+  optional string parent = 4;
+  optional CategoryLevel level = 5;
+}
 
 // 分类列表响应
-// message ListCategoryResponse {
-//   Paginate paginate = 1;
-//   repeated Category categoies = 2;
-// }
+message ListCategoryResponse {
+  Paginate paginate = 1;
+  repeated Category categoies = 2;
+}
 
 // 分类是否存在请求
 message CategoryExistsRequest {
@@ -92,12 +93,112 @@ message CategoryExistsRequest {
 }
 
 // 分类树请求
-// message CategoryTreeRequest {
-//   optional string id = 1;
-//   optional string parent = 2;
-//   optional string path = 3;
-//   optional CategoryLevel level = 4;
-// }
+message CategoryTreeRequest {
+  optional string id = 1;
+  optional string parent = 2;
+  optional string path = 3;
+  optional CategoryLevel level = 4;
+}
+
+// 分类树响应
+message CategoryTreeResponse { repeated CategoryTree tree = 1; }
+
+// 查找带品牌信息分类请求
+message FindCategoryWithBrandsRequest {
+  oneof by {
+    // 根据ID查找
+    string id = 1;
+    // 根据名称和父分类查找
+    CategoryNameAndParentRequest name_and_parent = 2;
+  }
+  // 限定是否删除
+  optional bool is_del = 3;
+  // 限定级别
+  optional CategoryLevel level = 4;
+  // 限定品牌名称
+  optional string brand_name = 5;
+}
+
+// 查找带品牌信息分类响应
+message FindCategoryWithBrandsResponse {
+  optional CategoryWithBrands category = 1;
+}
+
+// 带品牌信息分类列表请求
+message ListCategoryWithBrandsRequest {
+  PaginateRequest paginate = 1;
+  optional string name = 2;
+  optional bool is_del = 3;
+  optional string parent = 4;
+  optional CategoryLevel level = 5;
+  optional string brand_name = 6;
+}
+
+// 带品牌信息分类列表响应
+message ListCategoryWithBrandsResponse {
+  Paginate paginate = 1;
+  repeated CategoryWithBrands categoies = 2;
+}
+
+// 带品牌信息的分类树响应
+message CategoryWithBrandsTreeResponse {
+  repeated CategoryWithBrandsTree tree = 1;
+}
+
+// 查找带分类信息品牌请求
+message FindBrandWithCategoiesRequest {
+  oneof by {
+    // 根据ID查找
+    string id = 1;
+    // 根据名称查找
+    string name = 2;
+  }
+  // 限定是否删除
+  optional bool is_del = 3;
+  // 限定分类名称
+  optional string category_name = 4;
+}
+
+// 查找带分类信息品牌响应
+message FindBrandWithCategoiesResponse {
+  optional BrandWithCategoies brand = 1;
+}
+
+// 带分类信息品牌列表请求
+message ListBrandWithCategoiesRequest {
+  PaginateRequest paginate = 1;
+  optional string name = 2;
+  optional bool is_del = 3;
+  // 限定分类名称
+  optional string category_name = 4;
+}
+
+// 带分类信息品牌列表响应
+message ListBrandWithCategoiesResponse {
+  Paginate paginate = 1;
+  repeated BrandWithCategoies brands = 2;
+}
+
+// 设置分类-品牌请求
+message SetCategoryBrandsRequest {
+  string category_id = 1;
+  repeated string brand_ids = 2;
+}
+
+// 清空分类的品牌请求
+message ClearCategoryBrandsRequest { string category_id = 1; }
+
+// 创建带品牌的分类请求
+message CreateCategoryWithBrandsRequest {
+  Category category = 1;
+  repeated string brand_ids = 2;
+}
+
+// 创建带品牌分类的响应
+message CreateCategoryWithBrandsResponse {
+  ID id = 1;
+  Aff aff = 2;
+}
 
 // 商品服务
 service GoodsService {
@@ -125,9 +226,34 @@ service GoodsService {
   // 分类是否存在
   rpc CategoryExists(CategoryExistsRequest) returns (IsExistsResponse);
   // 查找分类
-  // rpc FindCategory(FindCategoryRequest) returns (FindCategoryResponse);
+  rpc FindCategory(FindCategoryRequest) returns (FindCategoryResponse);
   // 分类列表
-  // rpc ListCategory(ListCategoryRequest) returns (ListCategoryResponse);
+  rpc ListCategory(ListCategoryRequest) returns (ListCategoryResponse);
   // 分类树
-  // rpc CategoryTree(CategoryTreeRequest) returns (CategoryTreeResponse);
+  rpc CategoryTree(CategoryTreeRequest) returns (CategoryTreeResponse);
+
+  // 查找带品牌信息的分类
+  rpc FindCategoryWithBrands(FindCategoryWithBrandsRequest)
+      returns (FindCategoryWithBrandsResponse);
+  // 带品牌信息分类列表
+  rpc ListCategoryWithBrands(ListCategoryWithBrandsRequest)
+      returns (ListCategoryWithBrandsResponse);
+  // 带品牌信息分类树
+  rpc CategoryWithBrandsTree(CategoryTreeRequest)
+      returns (CategoryWithBrandsTreeResponse);
+
+  // 查找带分类信息的品牌
+  rpc FindBrandWithCategoies(FindBrandWithCategoiesRequest)
+      returns (FindBrandWithCategoiesResponse);
+  // 带分类信息品牌列表
+  rpc ListBrandWithCategoies(ListBrandWithCategoiesRequest)
+      returns (ListBrandWithCategoiesResponse);
+
+  // 设置分类-品牌
+  rpc SetCategoryBrands(SetCategoryBrandsRequest) returns (Aff);
+  // 清空分类的品牌
+  rpc ClearCategoryBrands(ClearCategoryBrandsRequest) returns (Aff);
+  // 创建带品牌的分类
+  rpc CreateCategoryWithBrands(CreateCategoryWithBrandsRequest)
+      returns (CreateCategoryWithBrandsResponse);
 }

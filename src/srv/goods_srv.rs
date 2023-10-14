@@ -273,4 +273,87 @@ impl GoodsService for Goods {
         tx.commit().await.map_err(e2s)?;
         Ok(tonic::Response::new(pb::IsExistsResponse { value: exists }))
     }
+    /// 查找分类
+    async fn find_category(
+        &self,
+        request: tonic::Request<pb::FindCategoryRequest>,
+    ) -> std::result::Result<tonic::Response<pb::FindCategoryResponse>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 分类列表
+    async fn list_category(
+        &self,
+        request: tonic::Request<pb::ListCategoryRequest>,
+    ) -> std::result::Result<tonic::Response<pb::ListCategoryResponse>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 分类树
+    async fn category_tree(
+        &self,
+        request: tonic::Request<pb::CategoryTreeRequest>,
+    ) -> std::result::Result<tonic::Response<pb::CategoryTreeResponse>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 查找带品牌信息的分类
+    async fn find_category_with_brands(
+        &self,
+        request: tonic::Request<pb::FindCategoryWithBrandsRequest>,
+    ) -> std::result::Result<tonic::Response<pb::FindCategoryWithBrandsResponse>, tonic::Status>
+    {
+        unimplemented!()
+    }
+    /// 带品牌信息分类列表
+    async fn list_category_with_brands(
+        &self,
+        request: tonic::Request<pb::ListCategoryWithBrandsRequest>,
+    ) -> std::result::Result<tonic::Response<pb::ListCategoryWithBrandsResponse>, tonic::Status>
+    {
+        unimplemented!()
+    }
+    /// 带品牌信息分类树
+    async fn category_with_brands_tree(
+        &self,
+        request: tonic::Request<pb::CategoryTreeRequest>,
+    ) -> std::result::Result<tonic::Response<pb::CategoryWithBrandsTreeResponse>, tonic::Status>
+    {
+        unimplemented!()
+    }
+    /// 查找带分类信息的品牌
+    async fn find_brand_with_categoies(
+        &self,
+        request: tonic::Request<pb::FindBrandWithCategoiesRequest>,
+    ) -> std::result::Result<tonic::Response<pb::FindBrandWithCategoiesResponse>, tonic::Status>
+    {
+        unimplemented!()
+    }
+    /// 带分类信息品牌列表
+    async fn list_brand_with_categoies(
+        &self,
+        request: tonic::Request<pb::ListBrandWithCategoiesRequest>,
+    ) -> std::result::Result<tonic::Response<pb::ListBrandWithCategoiesResponse>, tonic::Status>
+    {
+        unimplemented!()
+    }
+    /// 设置分类-品牌
+    async fn set_category_brands(
+        &self,
+        request: tonic::Request<pb::SetCategoryBrandsRequest>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 清空分类的品牌
+    async fn clear_category_brands(
+        &self,
+        request: tonic::Request<pb::ClearCategoryBrandsRequest>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 创建带品牌的分类
+    async fn create_category_with_brands(
+        &self,
+        request: tonic::Request<pb::CreateCategoryWithBrandsRequest>,
+    ) -> std::result::Result<tonic::Response<pb::CreateCategoryWithBrandsResponse>, tonic::Status>
+    {
+        unimplemented!()
+    }
 }

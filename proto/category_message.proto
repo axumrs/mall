@@ -20,3 +20,8 @@ message Category {
   google.protobuf.Timestamp dateline = 6;
   bool is_del = 7;
 }
+
+message CategoryTree {
+  Category category = 1;
+  string fullname = 2;
+}

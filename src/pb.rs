@@ -99,6 +99,14 @@ pub struct Category {
     #[prost(bool, tag = "7")]
     pub is_del: bool,
 }
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CategoryTree {
+    #[prost(message, optional, tag = "1")]
+    pub category: ::core::option::Option<Category>,
+    #[prost(string, tag = "2")]
+    pub fullname: ::prost::alloc::string::String,
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum CategoryLevel {
@@ -130,6 +138,30 @@ impl CategoryLevel {
             _ => None,
         }
     }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CategoryWithBrands {
+    #[prost(message, optional, tag = "1")]
+    pub category: ::core::option::Option<Category>,
+    #[prost(message, repeated, tag = "2")]
+    pub brands: ::prost::alloc::vec::Vec<Brand>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BrandWithCategoies {
+    #[prost(message, optional, tag = "1")]
+    pub brand: ::core::option::Option<Brand>,
+    #[prost(message, repeated, tag = "2")]
+    pub categoies: ::prost::alloc::vec::Vec<Category>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CategoryWithBrandsTree {
+    #[prost(message, optional, tag = "1")]
+    pub category_with_brands: ::core::option::Option<CategoryWithBrands>,
+    #[prost(string, tag = "2")]
+    pub fullname: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -240,6 +272,63 @@ pub struct CategoryNameAndParentRequest {
     #[prost(string, tag = "2")]
     pub parent: ::prost::alloc::string::String,
 }
+/// 查找分类请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindCategoryRequest {
+    /// 限定是否删除
+    #[prost(bool, optional, tag = "3")]
+    pub is_del: ::core::option::Option<bool>,
+    /// 限定级别
+    #[prost(enumeration = "CategoryLevel", optional, tag = "4")]
+    pub level: ::core::option::Option<i32>,
+    #[prost(oneof = "find_category_request::By", tags = "1, 2")]
+    pub by: ::core::option::Option<find_category_request::By>,
+}
+/// Nested message and enum types in `FindCategoryRequest`.
+pub mod find_category_request {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum By {
+        /// 根据ID查找
+        #[prost(string, tag = "1")]
+        Id(::prost::alloc::string::String),
+        /// 根据名称和父分类查找
+        #[prost(message, tag = "2")]
+        NameAndParent(super::CategoryNameAndParentRequest),
+    }
+}
+/// 查找分类响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindCategoryResponse {
+    #[prost(message, optional, tag = "1")]
+    pub category: ::core::option::Option<Category>,
+}
+/// 分类列表请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListCategoryRequest {
+    #[prost(message, optional, tag = "1")]
+    pub paginate: ::core::option::Option<PaginateRequest>,
+    #[prost(string, optional, tag = "2")]
+    pub name: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, optional, tag = "3")]
+    pub is_del: ::core::option::Option<bool>,
+    #[prost(string, optional, tag = "4")]
+    pub parent: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(enumeration = "CategoryLevel", optional, tag = "5")]
+    pub level: ::core::option::Option<i32>,
+}
+/// 分类列表响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListCategoryResponse {
+    #[prost(message, optional, tag = "1")]
+    pub paginate: ::core::option::Option<Paginate>,
+    #[prost(message, repeated, tag = "2")]
+    pub categoies: ::prost::alloc::vec::Vec<Category>,
+}
 /// 分类是否存在请求
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -248,6 +337,185 @@ pub struct CategoryExistsRequest {
     pub name_and_parent: ::core::option::Option<CategoryNameAndParentRequest>,
     #[prost(string, optional, tag = "2")]
     pub id: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// 分类树请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CategoryTreeRequest {
+    #[prost(string, optional, tag = "1")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "2")]
+    pub parent: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "3")]
+    pub path: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(enumeration = "CategoryLevel", optional, tag = "4")]
+    pub level: ::core::option::Option<i32>,
+}
+/// 分类树响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CategoryTreeResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub tree: ::prost::alloc::vec::Vec<CategoryTree>,
+}
+/// 查找带品牌信息分类请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindCategoryWithBrandsRequest {
+    /// 限定是否删除
+    #[prost(bool, optional, tag = "3")]
+    pub is_del: ::core::option::Option<bool>,
+    /// 限定级别
+    #[prost(enumeration = "CategoryLevel", optional, tag = "4")]
+    pub level: ::core::option::Option<i32>,
+    /// 限定品牌名称
+    #[prost(string, optional, tag = "5")]
+    pub brand_name: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(oneof = "find_category_with_brands_request::By", tags = "1, 2")]
+    pub by: ::core::option::Option<find_category_with_brands_request::By>,
+}
+/// Nested message and enum types in `FindCategoryWithBrandsRequest`.
+pub mod find_category_with_brands_request {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum By {
+        /// 根据ID查找
+        #[prost(string, tag = "1")]
+        Id(::prost::alloc::string::String),
+        /// 根据名称和父分类查找
+        #[prost(message, tag = "2")]
+        NameAndParent(super::CategoryNameAndParentRequest),
+    }
+}
+/// 查找带品牌信息分类响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindCategoryWithBrandsResponse {
+    #[prost(message, optional, tag = "1")]
+    pub category: ::core::option::Option<CategoryWithBrands>,
+}
+/// 带品牌信息分类列表请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListCategoryWithBrandsRequest {
+    #[prost(message, optional, tag = "1")]
+    pub paginate: ::core::option::Option<PaginateRequest>,
+    #[prost(string, optional, tag = "2")]
+    pub name: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, optional, tag = "3")]
+    pub is_del: ::core::option::Option<bool>,
+    #[prost(string, optional, tag = "4")]
+    pub parent: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(enumeration = "CategoryLevel", optional, tag = "5")]
+    pub level: ::core::option::Option<i32>,
+    #[prost(string, optional, tag = "6")]
+    pub brand_name: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// 带品牌信息分类列表响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListCategoryWithBrandsResponse {
+    #[prost(message, optional, tag = "1")]
+    pub paginate: ::core::option::Option<Paginate>,
+    #[prost(message, repeated, tag = "2")]
+    pub categoies: ::prost::alloc::vec::Vec<CategoryWithBrands>,
+}
+/// 带品牌信息的分类树响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CategoryWithBrandsTreeResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub tree: ::prost::alloc::vec::Vec<CategoryWithBrandsTree>,
+}
+/// 查找带分类信息品牌请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindBrandWithCategoiesRequest {
+    /// 限定是否删除
+    #[prost(bool, optional, tag = "3")]
+    pub is_del: ::core::option::Option<bool>,
+    /// 限定分类名称
+    #[prost(string, optional, tag = "4")]
+    pub category_name: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(oneof = "find_brand_with_categoies_request::By", tags = "1, 2")]
+    pub by: ::core::option::Option<find_brand_with_categoies_request::By>,
+}
+/// Nested message and enum types in `FindBrandWithCategoiesRequest`.
+pub mod find_brand_with_categoies_request {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum By {
+        /// 根据ID查找
+        #[prost(string, tag = "1")]
+        Id(::prost::alloc::string::String),
+        /// 根据名称查找
+        #[prost(string, tag = "2")]
+        Name(::prost::alloc::string::String),
+    }
+}
+/// 查找带分类信息品牌响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindBrandWithCategoiesResponse {
+    #[prost(message, optional, tag = "1")]
+    pub brand: ::core::option::Option<BrandWithCategoies>,
+}
+/// 带分类信息品牌列表请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListBrandWithCategoiesRequest {
+    #[prost(message, optional, tag = "1")]
+    pub paginate: ::core::option::Option<PaginateRequest>,
+    #[prost(string, optional, tag = "2")]
+    pub name: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, optional, tag = "3")]
+    pub is_del: ::core::option::Option<bool>,
+    /// 限定分类名称
+    #[prost(string, optional, tag = "4")]
+    pub category_name: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// 带分类信息品牌列表响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListBrandWithCategoiesResponse {
+    #[prost(message, optional, tag = "1")]
+    pub paginate: ::core::option::Option<Paginate>,
+    #[prost(message, repeated, tag = "2")]
+    pub brands: ::prost::alloc::vec::Vec<BrandWithCategoies>,
+}
+/// 设置分类-品牌请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SetCategoryBrandsRequest {
+    #[prost(string, tag = "1")]
+    pub category_id: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "2")]
+    pub brand_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// 清空分类的品牌请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ClearCategoryBrandsRequest {
+    #[prost(string, tag = "1")]
+    pub category_id: ::prost::alloc::string::String,
+}
+/// 创建带品牌的分类请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateCategoryWithBrandsRequest {
+    #[prost(message, optional, tag = "1")]
+    pub category: ::core::option::Option<Category>,
+    #[prost(string, repeated, tag = "2")]
+    pub brand_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// 创建带品牌分类的响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateCategoryWithBrandsResponse {
+    #[prost(message, optional, tag = "1")]
+    pub id: ::core::option::Option<Id>,
+    #[prost(message, optional, tag = "2")]
+    pub aff: ::core::option::Option<Aff>,
 }
 /// Generated client implementations.
 pub mod goods_service_client {
@@ -597,6 +865,286 @@ pub mod goods_service_client {
                 .insert(GrpcMethod::new("pb.GoodsService", "CategoryExists"));
             self.inner.unary(req, path, codec).await
         }
+        /// 查找分类
+        pub async fn find_category(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FindCategoryRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindCategoryResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/FindCategory",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "FindCategory"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 分类列表
+        pub async fn list_category(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListCategoryRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListCategoryResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/ListCategory",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "ListCategory"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 分类树
+        pub async fn category_tree(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CategoryTreeRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::CategoryTreeResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/CategoryTree",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "CategoryTree"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 查找带品牌信息的分类
+        pub async fn find_category_with_brands(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FindCategoryWithBrandsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindCategoryWithBrandsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/FindCategoryWithBrands",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "FindCategoryWithBrands"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 带品牌信息分类列表
+        pub async fn list_category_with_brands(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListCategoryWithBrandsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListCategoryWithBrandsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/ListCategoryWithBrands",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "ListCategoryWithBrands"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 带品牌信息分类树
+        pub async fn category_with_brands_tree(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CategoryTreeRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::CategoryWithBrandsTreeResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/CategoryWithBrandsTree",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "CategoryWithBrandsTree"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 查找带分类信息的品牌
+        pub async fn find_brand_with_categoies(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FindBrandWithCategoiesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindBrandWithCategoiesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/FindBrandWithCategoies",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "FindBrandWithCategoies"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 带分类信息品牌列表
+        pub async fn list_brand_with_categoies(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListBrandWithCategoiesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListBrandWithCategoiesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/ListBrandWithCategoies",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "ListBrandWithCategoies"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 设置分类-品牌
+        pub async fn set_category_brands(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SetCategoryBrandsRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/SetCategoryBrands",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "SetCategoryBrands"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 清空分类的品牌
+        pub async fn clear_category_brands(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ClearCategoryBrandsRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/ClearCategoryBrands",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "ClearCategoryBrands"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 创建带品牌的分类
+        pub async fn create_category_with_brands(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateCategoryWithBrandsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::CreateCategoryWithBrandsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/CreateCategoryWithBrands",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "CreateCategoryWithBrands"));
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -671,6 +1219,88 @@ pub mod goods_service_server {
             request: tonic::Request<super::CategoryExistsRequest>,
         ) -> std::result::Result<
             tonic::Response<super::IsExistsResponse>,
+            tonic::Status,
+        >;
+        /// 查找分类
+        async fn find_category(
+            &self,
+            request: tonic::Request<super::FindCategoryRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindCategoryResponse>,
+            tonic::Status,
+        >;
+        /// 分类列表
+        async fn list_category(
+            &self,
+            request: tonic::Request<super::ListCategoryRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListCategoryResponse>,
+            tonic::Status,
+        >;
+        /// 分类树
+        async fn category_tree(
+            &self,
+            request: tonic::Request<super::CategoryTreeRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::CategoryTreeResponse>,
+            tonic::Status,
+        >;
+        /// 查找带品牌信息的分类
+        async fn find_category_with_brands(
+            &self,
+            request: tonic::Request<super::FindCategoryWithBrandsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindCategoryWithBrandsResponse>,
+            tonic::Status,
+        >;
+        /// 带品牌信息分类列表
+        async fn list_category_with_brands(
+            &self,
+            request: tonic::Request<super::ListCategoryWithBrandsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListCategoryWithBrandsResponse>,
+            tonic::Status,
+        >;
+        /// 带品牌信息分类树
+        async fn category_with_brands_tree(
+            &self,
+            request: tonic::Request<super::CategoryTreeRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::CategoryWithBrandsTreeResponse>,
+            tonic::Status,
+        >;
+        /// 查找带分类信息的品牌
+        async fn find_brand_with_categoies(
+            &self,
+            request: tonic::Request<super::FindBrandWithCategoiesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindBrandWithCategoiesResponse>,
+            tonic::Status,
+        >;
+        /// 带分类信息品牌列表
+        async fn list_brand_with_categoies(
+            &self,
+            request: tonic::Request<super::ListBrandWithCategoiesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListBrandWithCategoiesResponse>,
+            tonic::Status,
+        >;
+        /// 设置分类-品牌
+        async fn set_category_brands(
+            &self,
+            request: tonic::Request<super::SetCategoryBrandsRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 清空分类的品牌
+        async fn clear_category_brands(
+            &self,
+            request: tonic::Request<super::ClearCategoryBrandsRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 创建带品牌的分类
+        async fn create_category_with_brands(
+            &self,
+            request: tonic::Request<super::CreateCategoryWithBrandsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::CreateCategoryWithBrandsResponse>,
             tonic::Status,
         >;
     }
@@ -1229,6 +1859,514 @@ pub mod goods_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = CategoryExistsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/FindCategory" => {
+                    #[allow(non_camel_case_types)]
+                    struct FindCategorySvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::FindCategoryRequest>
+                    for FindCategorySvc<T> {
+                        type Response = super::FindCategoryResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::FindCategoryRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).find_category(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = FindCategorySvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/ListCategory" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListCategorySvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::ListCategoryRequest>
+                    for ListCategorySvc<T> {
+                        type Response = super::ListCategoryResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListCategoryRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).list_category(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ListCategorySvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/CategoryTree" => {
+                    #[allow(non_camel_case_types)]
+                    struct CategoryTreeSvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::CategoryTreeRequest>
+                    for CategoryTreeSvc<T> {
+                        type Response = super::CategoryTreeResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::CategoryTreeRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).category_tree(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = CategoryTreeSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/FindCategoryWithBrands" => {
+                    #[allow(non_camel_case_types)]
+                    struct FindCategoryWithBrandsSvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::FindCategoryWithBrandsRequest>
+                    for FindCategoryWithBrandsSvc<T> {
+                        type Response = super::FindCategoryWithBrandsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::FindCategoryWithBrandsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).find_category_with_brands(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = FindCategoryWithBrandsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/ListCategoryWithBrands" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListCategoryWithBrandsSvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::ListCategoryWithBrandsRequest>
+                    for ListCategoryWithBrandsSvc<T> {
+                        type Response = super::ListCategoryWithBrandsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListCategoryWithBrandsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).list_category_with_brands(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ListCategoryWithBrandsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/CategoryWithBrandsTree" => {
+                    #[allow(non_camel_case_types)]
+                    struct CategoryWithBrandsTreeSvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::CategoryTreeRequest>
+                    for CategoryWithBrandsTreeSvc<T> {
+                        type Response = super::CategoryWithBrandsTreeResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::CategoryTreeRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).category_with_brands_tree(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = CategoryWithBrandsTreeSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/FindBrandWithCategoies" => {
+                    #[allow(non_camel_case_types)]
+                    struct FindBrandWithCategoiesSvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::FindBrandWithCategoiesRequest>
+                    for FindBrandWithCategoiesSvc<T> {
+                        type Response = super::FindBrandWithCategoiesResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::FindBrandWithCategoiesRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).find_brand_with_categoies(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = FindBrandWithCategoiesSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/ListBrandWithCategoies" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListBrandWithCategoiesSvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::ListBrandWithCategoiesRequest>
+                    for ListBrandWithCategoiesSvc<T> {
+                        type Response = super::ListBrandWithCategoiesResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListBrandWithCategoiesRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).list_brand_with_categoies(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ListBrandWithCategoiesSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/SetCategoryBrands" => {
+                    #[allow(non_camel_case_types)]
+                    struct SetCategoryBrandsSvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::SetCategoryBrandsRequest>
+                    for SetCategoryBrandsSvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SetCategoryBrandsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).set_category_brands(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = SetCategoryBrandsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/ClearCategoryBrands" => {
+                    #[allow(non_camel_case_types)]
+                    struct ClearCategoryBrandsSvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::ClearCategoryBrandsRequest>
+                    for ClearCategoryBrandsSvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ClearCategoryBrandsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).clear_category_brands(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ClearCategoryBrandsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/CreateCategoryWithBrands" => {
+                    #[allow(non_camel_case_types)]
+                    struct CreateCategoryWithBrandsSvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::CreateCategoryWithBrandsRequest>
+                    for CreateCategoryWithBrandsSvc<T> {
+                        type Response = super::CreateCategoryWithBrandsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<
+                                super::CreateCategoryWithBrandsRequest,
+                            >,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).create_category_with_brands(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = CreateCategoryWithBrandsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -2159,20 +3297,4 @@ pub mod user_service_server {
     impl<T: UserService> tonic::server::NamedService for UserServiceServer<T> {
         const NAME: &'static str = "pb.UserService";
     }
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CategoryWithBrands {
-    #[prost(message, optional, tag = "1")]
-    pub category: ::core::option::Option<Category>,
-    #[prost(message, repeated, tag = "2")]
-    pub brands: ::prost::alloc::vec::Vec<Brand>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct BrandWithCategoies {
-    #[prost(message, optional, tag = "1")]
-    pub brand: ::core::option::Option<Brand>,
-    #[prost(message, repeated, tag = "2")]
-    pub categoies: ::prost::alloc::vec::Vec<Category>,
 }
