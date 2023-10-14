@@ -2,7 +2,9 @@ use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{pb, utils::dt};
+use crate::{db, pb, utils::dt};
+
+use super::{BrandFindBy, Category, CategoryLevel, FindCategoryBy};
 
 /// 分类与品牌的关系。对应数据库 `category_brands` 表
 #[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
@@ -267,4 +269,246 @@ pub struct Tree {
     #[sqlx(flatten)]
     pub category_with_brands: CategoryWithBrands,
     pub fullname: String,
+}
+
+// --- 查找分类 ---
+pub struct FindCategoryWithBrandsRequest {
+    pub by: FindCategoryBy,
+    pub is_del: Option<bool>,
+    pub level: Option<CategoryLevel>,
+    pub brand_name: Option<String>,
+}
+
+impl From<pb::FindCategoryWithBrandsRequest> for FindCategoryWithBrandsRequest {
+    fn from(r: pb::FindCategoryWithBrandsRequest) -> Self {
+        let level = if let Some(level) = r.level {
+            Some(pb::CategoryLevel::from_i32(level).unwrap().into())
+        } else {
+            None
+        };
+
+        let by = match r.by.unwrap() {
+            pb::find_category_with_brands_request::By::Id(id) => FindCategoryBy::ID(id),
+            pb::find_category_with_brands_request::By::NameAndParent(nap) => {
+                FindCategoryBy::NameAndParent(nap.into())
+            }
+        };
+        Self {
+            by,
+            is_del: r.is_del,
+            level,
+            brand_name: r.brand_name,
+        }
+    }
+}
+
+impl Into<pb::FindCategoryWithBrandsRequest> for FindCategoryWithBrandsRequest {
+    fn into(self) -> pb::FindCategoryWithBrandsRequest {
+        let level = if let Some(level) = self.level {
+            Some(pb::CategoryLevel::from_i32(level as i32).unwrap().into())
+        } else {
+            None
+        };
+
+        let by = match self.by {
+            FindCategoryBy::ID(id) => pb::find_category_with_brands_request::By::Id(id),
+            FindCategoryBy::NameAndParent(nap) => {
+                pb::find_category_with_brands_request::By::NameAndParent(nap.into())
+            }
+        };
+        let by = Some(by);
+
+        pb::FindCategoryWithBrandsRequest {
+            is_del: self.is_del,
+            level,
+            brand_name: self.brand_name,
+            by,
+        }
+    }
+}
+
+// --- 分类列表 ---
+pub struct ListCategoryWithBrandsRequest {
+    pub paginate: db::PaginateRequest,
+    pub name: Option<String>,
+    pub is_del: Option<bool>,
+    pub parent: Option<String>,
+    pub level: Option<CategoryLevel>,
+    pub brand_name: Option<String>,
+}
+
+impl From<pb::ListCategoryWithBrandsRequest> for ListCategoryWithBrandsRequest {
+    fn from(r: pb::ListCategoryWithBrandsRequest) -> Self {
+        let level = if let Some(level) = r.level {
+            Some(pb::CategoryLevel::from_i32(level).unwrap().into())
+        } else {
+            None
+        };
+        Self {
+            paginate: r.paginate.unwrap().into(),
+            name: r.name,
+            is_del: r.is_del,
+            parent: r.parent,
+            level,
+            brand_name: r.brand_name,
+        }
+    }
+}
+
+impl Into<pb::ListCategoryWithBrandsRequest> for ListCategoryWithBrandsRequest {
+    fn into(self) -> pb::ListCategoryWithBrandsRequest {
+        let level = if let Some(level) = self.level {
+            let level: pb::CategoryLevel = level.into();
+            Some(level.into())
+        } else {
+            None
+        };
+
+        pb::ListCategoryWithBrandsRequest {
+            paginate: Some(self.paginate.into()),
+            name: self.name,
+            is_del: self.is_del,
+            parent: self.parent,
+            level,
+            brand_name: self.brand_name,
+        }
+    }
+}
+
+// --- 查找品牌 ---
+
+pub struct FindBrandWithCategoriesRequest {
+    pub by: BrandFindBy,
+    pub is_del: Option<bool>,
+    pub category_name: Option<String>,
+}
+
+impl From<pb::FindBrandWithCategoiesRequest> for FindBrandWithCategoriesRequest {
+    fn from(r: pb::FindBrandWithCategoiesRequest) -> Self {
+        let by = match r.by.unwrap() {
+            pb::find_brand_with_categoies_request::By::Id(id) => BrandFindBy::ID(id),
+            pb::find_brand_with_categoies_request::By::Name(name) => BrandFindBy::Name(name),
+        };
+        Self {
+            by,
+            is_del: r.is_del,
+            category_name: r.category_name,
+        }
+    }
+}
+
+impl Into<pb::FindBrandWithCategoiesRequest> for FindBrandWithCategoriesRequest {
+    fn into(self) -> pb::FindBrandWithCategoiesRequest {
+        let by = match self.by {
+            BrandFindBy::ID(id) => pb::find_brand_with_categoies_request::By::Id(id),
+            BrandFindBy::Name(name) => pb::find_brand_with_categoies_request::By::Name(name),
+        };
+        let by = Some(by);
+
+        pb::FindBrandWithCategoiesRequest {
+            is_del: self.is_del,
+            category_name: self.category_name,
+            by,
+        }
+    }
+}
+
+// --- 品牌列表 ---
+pub struct ListBrandWithCategoriesRequest {
+    pub paginate: db::PaginateRequest,
+    pub name: Option<String>,
+    pub is_del: Option<bool>,
+    pub category_name: Option<String>,
+}
+
+impl From<pb::ListBrandWithCategoiesRequest> for ListBrandWithCategoriesRequest {
+    fn from(r: pb::ListBrandWithCategoiesRequest) -> Self {
+        Self {
+            paginate: r.paginate.unwrap().into(),
+            name: r.name,
+            is_del: r.is_del,
+            category_name: r.category_name,
+        }
+    }
+}
+
+impl Into<pb::ListBrandWithCategoiesRequest> for ListBrandWithCategoriesRequest {
+    fn into(self) -> pb::ListBrandWithCategoiesRequest {
+        pb::ListBrandWithCategoiesRequest {
+            paginate: Some(self.paginate.into()),
+            name: self.name,
+            is_del: self.is_del,
+            category_name: self.category_name,
+        }
+    }
+}
+
+// --- 设置分类-品牌 ---
+pub struct SetCategoryBrandRequest {
+    pub category_id: String,
+    pub brand_ids: Vec<String>,
+}
+
+impl From<pb::SetCategoryBrandsRequest> for SetCategoryBrandRequest {
+    fn from(r: pb::SetCategoryBrandsRequest) -> Self {
+        Self {
+            category_id: r.category_id,
+            brand_ids: r.brand_ids,
+        }
+    }
+}
+
+impl Into<pb::SetCategoryBrandsRequest> for SetCategoryBrandRequest {
+    fn into(self) -> pb::SetCategoryBrandsRequest {
+        pb::SetCategoryBrandsRequest {
+            category_id: self.category_id,
+            brand_ids: self.brand_ids,
+        }
+    }
+}
+
+// --- 清除分类品牌 ---
+pub struct ClearCategoryBrandsRequest {
+    pub category_id: String,
+}
+
+impl From<pb::ClearCategoryBrandsRequest> for ClearCategoryBrandsRequest {
+    fn from(r: pb::ClearCategoryBrandsRequest) -> Self {
+        Self {
+            category_id: r.category_id,
+        }
+    }
+}
+
+impl Into<pb::ClearCategoryBrandsRequest> for ClearCategoryBrandsRequest {
+    fn into(self) -> pb::ClearCategoryBrandsRequest {
+        pb::ClearCategoryBrandsRequest {
+            category_id: self.category_id,
+        }
+    }
+}
+
+// --- 创建带品牌的分类 ---
+
+pub struct CreateCategoryWithBrandsRequest {
+    pub category: Category,
+    pub brand_ids: Vec<String>,
+}
+
+impl From<pb::CreateCategoryWithBrandsRequest> for CreateCategoryWithBrandsRequest {
+    fn from(r: pb::CreateCategoryWithBrandsRequest) -> Self {
+        Self {
+            category: r.category.unwrap().into(),
+            brand_ids: r.brand_ids,
+        }
+    }
+}
+
+impl Into<pb::CreateCategoryWithBrandsRequest> for CreateCategoryWithBrandsRequest {
+    fn into(self) -> pb::CreateCategoryWithBrandsRequest {
+        pb::CreateCategoryWithBrandsRequest {
+            category: Some(self.category.into()),
+            brand_ids: self.brand_ids,
+        }
+    }
 }

@@ -342,14 +342,27 @@ pub struct CategoryExistsRequest {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CategoryTreeRequest {
-    #[prost(string, optional, tag = "1")]
-    pub id: ::core::option::Option<::prost::alloc::string::String>,
-    #[prost(string, optional, tag = "2")]
-    pub parent: ::core::option::Option<::prost::alloc::string::String>,
     #[prost(string, optional, tag = "3")]
-    pub path: ::core::option::Option<::prost::alloc::string::String>,
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
     #[prost(enumeration = "CategoryLevel", optional, tag = "4")]
     pub level: ::core::option::Option<i32>,
+    #[prost(string, optional, tag = "5")]
+    pub name: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(oneof = "category_tree_request::By", tags = "1, 2")]
+    pub by: ::core::option::Option<category_tree_request::By>,
+}
+/// Nested message and enum types in `CategoryTreeRequest`.
+pub mod category_tree_request {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum By {
+        /// 根据父ID查找直接子节点
+        #[prost(string, tag = "1")]
+        Parent(::prost::alloc::string::String),
+        /// 根据path查找所有子节点
+        #[prost(string, tag = "2")]
+        Path(::prost::alloc::string::String),
+    }
 }
 /// 分类树响应
 #[allow(clippy::derive_partial_eq_without_eq)]

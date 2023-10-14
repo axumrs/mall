@@ -94,10 +94,15 @@ message CategoryExistsRequest {
 
 // 分类树请求
 message CategoryTreeRequest {
-  optional string id = 1;
-  optional string parent = 2;
-  optional string path = 3;
+  oneof by {
+    // 根据父ID查找直接子节点
+    string parent = 1;
+    // 根据path查找所有子节点
+    string path = 2;
+  }
+  optional string id = 3;
   optional CategoryLevel level = 4;
+  optional string name = 5;
 }
 
 // 分类树响应

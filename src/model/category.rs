@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{pb, utils::dt};
+use crate::{db, pb, utils::dt};
 
 #[derive(Debug, Default, Deserialize, Serialize, sqlx::Type, Clone, Copy)]
 #[sqlx(type_name = "category_level")]
@@ -152,4 +152,153 @@ pub struct TreePure {
     #[sqlx(flatten)]
     pub category: Category,
     pub fullname: String,
+}
+
+// ---- 查找分类 ----
+
+pub enum FindCategoryBy {
+    ID(String),
+    NameAndParent(CategoryNameAndParentRequest),
+}
+
+pub struct FindCategoryRequest {
+    pub by: FindCategoryBy,
+    pub level: Option<CategoryLevel>,
+    pub is_del: Option<bool>,
+}
+
+impl From<pb::FindCategoryRequest> for FindCategoryRequest {
+    fn from(r: pb::FindCategoryRequest) -> Self {
+        let level = if let Some(level) = r.level {
+            let lv: CategoryLevel = pb::CategoryLevel::from_i32(level)
+                .unwrap_or_default()
+                .into();
+            Some(lv)
+        } else {
+            None
+        };
+        let by = match r.by.unwrap() {
+            pb::find_category_request::By::Id(id) => FindCategoryBy::ID(id),
+            pb::find_category_request::By::NameAndParent(nap) => {
+                FindCategoryBy::NameAndParent(nap.into())
+            }
+        };
+        Self {
+            by,
+            level,
+            is_del: r.is_del,
+        }
+    }
+}
+
+impl Into<pb::FindCategoryRequest> for FindCategoryRequest {
+    fn into(self) -> pb::FindCategoryRequest {
+        let level = if let Some(level) = self.level {
+            let lv: pb::CategoryLevel = level.into();
+            let lv: i32 = lv.into();
+            Some(lv)
+        } else {
+            None
+        };
+        let by = match self.by {
+            FindCategoryBy::ID(id) => pb::find_category_request::By::Id(id),
+            FindCategoryBy::NameAndParent(nap) => {
+                pb::find_category_request::By::NameAndParent(nap.into())
+            }
+        };
+        let by = Some(by);
+        pb::FindCategoryRequest {
+            is_del: self.is_del,
+            level,
+            by,
+        }
+    }
+}
+
+// --- 分类列表 ---
+pub struct ListCategoryRequest {
+    pub paginate: db::PaginateRequest,
+    pub name: Option<String>,
+    pub is_del: Option<bool>,
+    pub parent: Option<String>,
+    pub level: Option<CategoryLevel>,
+}
+
+impl From<pb::ListCategoryRequest> for ListCategoryRequest {
+    fn from(r: pb::ListCategoryRequest) -> Self {
+        let level = if let Some(level) = r.level {
+            let lv: CategoryLevel = pb::CategoryLevel::from_i32(level)
+                .unwrap_or_default()
+                .into();
+            Some(lv)
+        } else {
+            None
+        };
+        Self {
+            paginate: r.paginate.unwrap().into(),
+            name: r.name,
+            is_del: r.is_del,
+            parent: r.parent,
+            level,
+        }
+    }
+}
+// --- 分类树 ---
+pub enum CategoryTreeBy {
+    Parent(String),
+    Path(String),
+}
+
+pub struct CategoryTreeRequest {
+    pub by: CategoryTreeBy,
+    pub id: Option<String>,
+    pub level: Option<CategoryLevel>,
+    pub name: Option<String>,
+}
+
+impl From<pb::CategoryTreeRequest> for CategoryTreeRequest {
+    fn from(r: pb::CategoryTreeRequest) -> Self {
+        let level = if let Some(level) = r.level {
+            let lv: CategoryLevel = pb::CategoryLevel::from_i32(level).unwrap().into();
+            Some(lv)
+        } else {
+            None
+        };
+
+        let by = match r.by.unwrap() {
+            pb::category_tree_request::By::Parent(parent) => CategoryTreeBy::Parent(parent),
+            pb::category_tree_request::By::Path(path) => CategoryTreeBy::Path(path),
+        };
+
+        Self {
+            by,
+            id: r.id,
+            level,
+            name: r.name,
+        }
+    }
+}
+
+impl Into<pb::CategoryTreeRequest> for CategoryTreeRequest {
+    fn into(self) -> pb::CategoryTreeRequest {
+        let by = match self.by {
+            CategoryTreeBy::Parent(parent) => pb::category_tree_request::By::Parent(parent),
+            CategoryTreeBy::Path(path) => pb::category_tree_request::By::Path(path),
+        };
+        let by = Some(by);
+
+        let level = if let Some(level) = self.level {
+            let lv: pb::CategoryLevel = level.into();
+            Some(lv.into())
+        } else {
+            None
+        };
+
+        pb::CategoryTreeRequest {
+            id: self.id,
+            level,
+            name: self.name,
+            by,
+        }
+    }
 }
