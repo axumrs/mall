@@ -4,6 +4,7 @@ use crate::{pb, utils::dt};
 
 #[derive(Debug, Default, Deserialize, Serialize, sqlx::Type, Clone, Copy)]
 #[sqlx(type_name = "category_level")]
+#[repr(i32)]
 pub enum CategoryLevel {
     /// 未指定
     #[default]
@@ -14,6 +15,19 @@ pub enum CategoryLevel {
     Level2 = 2,
     /// 三级分类
     Level3 = 3,
+}
+
+impl std::str::FromStr for CategoryLevel {
+    type Err = ();
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let r = match s {
+            "Level1" => Self::Level1,
+            "Level2" => Self::Level2,
+            "Level3" => Self::Level3,
+            _ => Self::Unspecified,
+        };
+        Ok(r)
+    }
 }
 
 impl From<pb::CategoryLevel> for CategoryLevel {

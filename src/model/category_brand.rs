@@ -1,6 +1,8 @@
+use std::str::FromStr;
+
 use serde::{Deserialize, Serialize};
 
-use crate::pb;
+use crate::{pb, utils::dt};
 
 /// 分类与品牌的关系。对应数据库 `category_brands` 表
 #[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
@@ -21,132 +23,240 @@ pub struct CategoryBrandView {
     pub dateline: chrono::DateTime<chrono::Local>,
     pub is_del: bool,
     // 品牌
-    pub brand_id: String,
-    pub brand_name: String,
-    pub brand_logo: String,
-    pub brand_is_del: bool,
-    pub brand_dateline: chrono::DateTime<chrono::Local>,
+    pub brand_id: Option<String>,
+    pub brand_name: Option<String>,
+    pub brand_logo: Option<String>,
+    pub brand_is_del: Option<bool>,
+    pub brand_dateline: Option<chrono::DateTime<chrono::Local>>,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+/// 分类的品牌信息。对应数据库 `v_category_with_brands` 视图
+#[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
 pub struct CategoryWithBrands {
-    pub category: super::Category,
-    pub brands: Vec<super::Brand>,
+    // 分类
+    pub id: String,
+    pub name: String,
+    pub parent: String,
+    pub path: String,
+    pub level: super::CategoryLevel,
+    pub dateline: chrono::DateTime<chrono::Local>,
+    pub is_del: bool,
+    // 品牌
+    pub brand_ids: Vec<Option<String>>,
+    pub brand_names: Vec<Option<String>>,
+    pub brand_logos: Vec<Option<String>>,
+    pub brand_is_dels: Vec<Option<bool>>,
+    pub brand_datelines: Vec<Option<chrono::DateTime<chrono::Local>>>,
+    pub brand_names_str: String,
 }
 
-impl From<Vec<CategoryBrandView>> for CategoryWithBrands {
-    fn from(vs: Vec<CategoryBrandView>) -> Self {
-        if vs.is_empty() {
-            return Self::default();
+impl CategoryWithBrands {
+    pub fn has_brands(&self) -> bool {
+        (!self.brand_ids.is_empty()) && self.brand_ids.iter().all(|id| id.is_some())
+    }
+    pub fn brands_len(&self) -> usize {
+        if !self.has_brands() {
+            0
+        } else {
+            self.brand_ids.len()
         }
-        let mut brands = Vec::with_capacity(vs.len());
-        let category = super::Category {
-            id: vs[0].id.clone(),
-            name: vs[0].name.clone(),
-            parent: vs[0].parent.clone(),
-            path: vs[0].path.clone(),
-            level: vs[0].level.clone(),
-            dateline: vs[0].dateline.clone(),
-            is_del: vs[0].is_del,
-        };
-        for item in vs {
-            let brand = super::Brand {
-                id: item.brand_id,
-                name: item.brand_name,
-                logo: item.brand_logo,
-                is_del: item.brand_is_del,
-                dateline: item.brand_dateline,
-            };
-            brands.push(brand);
-        }
-        Self { category, brands }
     }
 }
 
 impl From<pb::CategoryWithBrands> for CategoryWithBrands {
-    fn from(cb: pb::CategoryWithBrands) -> Self {
-        let mut brands = Vec::with_capacity(cb.brands.len());
-        for brand in cb.brands {
-            brands.push(super::Brand::from(brand));
+    fn from(pcb: pb::CategoryWithBrands) -> Self {
+        let cate = pcb.category.unwrap();
+        let mut brand_ids = Vec::with_capacity(pcb.brands.len());
+        let mut brand_names = Vec::with_capacity(pcb.brands.len());
+        let mut brand_logos = Vec::with_capacity(pcb.brands.len());
+        let mut brand_is_dels = Vec::with_capacity(pcb.brands.len());
+        let mut brand_datelines = Vec::with_capacity(pcb.brands.len());
+        let mut brand_names_str = Vec::with_capacity(pcb.brands.len());
+
+        for b in pcb.brands.iter() {
+            brand_ids.push(Some(b.id.clone()));
+            brand_names.push(Some(b.name.clone()));
+            brand_logos.push(Some(b.logo.clone()));
+            brand_is_dels.push(Some(b.is_del));
+            brand_datelines.push(Some(dt::prost2chrono(&b.dateline)));
+            brand_names_str.push(b.name.clone());
         }
+
+        let brand_names_str = format!(",{},", brand_names_str.join(","));
+
+        let level = super::CategoryLevel::from(cate.level());
+
         Self {
-            category: cb.category.unwrap_or_default().into(),
-            brands,
+            id: cate.id,
+            name: cate.name,
+            parent: cate.parent,
+            path: cate.path,
+            level,
+            dateline: dt::prost2chrono(&cate.dateline),
+            is_del: cate.is_del,
+            brand_ids,
+            brand_names,
+            brand_logos,
+            brand_is_dels,
+            brand_datelines,
+            brand_names_str,
         }
     }
 }
 
 impl Into<pb::CategoryWithBrands> for CategoryWithBrands {
     fn into(self) -> pb::CategoryWithBrands {
-        let mut brands = Vec::with_capacity(self.brands.len());
-        for brand in self.brands {
-            brands.push(brand.into());
+        let dateline = dt::chrono2prost(&self.dateline);
+        let level: pb::CategoryLevel = self.level.into();
+        let mut brands = Vec::with_capacity(self.brands_len());
+        if self.has_brands() {
+            for i in 0..self.brands_len() {
+                let b = pb::Brand {
+                    id: self.brand_ids[i].clone().unwrap(),
+                    name: self.brand_names[i].clone().unwrap(),
+                    logo: self.brand_logos[i].clone().unwrap(),
+                    is_del: self.brand_is_dels[i].clone().unwrap(),
+                    dateline: dt::chrono2prost(&self.brand_datelines[i].clone().unwrap()),
+                };
+                brands.push(b);
+            }
         }
+
+        let cate = pb::Category {
+            id: self.id,
+            name: self.name,
+            parent: self.parent,
+            path: self.path,
+            level: level.into(),
+            dateline,
+            is_del: self.is_del,
+        };
+
         pb::CategoryWithBrands {
-            category: Some(self.category.into()),
+            category: Some(cate),
             brands,
         }
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+/// 品牌的分类信息。对应数据库 `v_brand_with_categoies` 视图
+#[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
 pub struct BrandWithCategoies {
-    pub brand: super::Brand,
-    pub categoies: Vec<super::Category>,
+    // 品牌
+    pub brand_id: String,
+    pub brand_name: String,
+    pub brand_logo: String,
+    pub brand_is_del: bool,
+    pub brand_dateline: chrono::DateTime<chrono::Local>,
+
+    // 分类
+    pub ids: Vec<Option<String>>,
+    pub names: Vec<Option<String>>,
+    pub parents: Vec<Option<String>>,
+    pub paths: Vec<Option<String>>,
+    pub levels: Vec<Option<String>>,
+    pub datelines: Vec<Option<chrono::DateTime<chrono::Local>>>,
+    pub is_dels: Vec<Option<bool>>,
+    pub names_str: String,
 }
 
-impl From<Vec<CategoryBrandView>> for BrandWithCategoies {
-    fn from(vs: Vec<CategoryBrandView>) -> Self {
-        if vs.is_empty() {
-            return Self::default();
+impl BrandWithCategoies {
+    pub fn has_categoies(&self) -> bool {
+        (!self.ids.is_empty()) && self.ids.iter().all(|id| id.is_some())
+    }
+    pub fn categoies_len(&self) -> usize {
+        if !self.has_categoies() {
+            0
+        } else {
+            self.ids.len()
         }
-        let mut categoies = Vec::with_capacity(vs.len());
-        let brand = super::Brand {
-            id: vs[0].brand_id.clone(),
-            name: vs[0].brand_name.clone(),
-            logo: vs[0].brand_logo.clone(),
-            is_del: vs[0].brand_is_del,
-            dateline: vs[0].brand_dateline.clone(),
-        };
-
-        for item in vs {
-            let cate = super::Category {
-                id: item.id,
-                name: item.name,
-                parent: item.parent,
-                path: item.path,
-                level: item.level,
-                dateline: item.dateline,
-                is_del: item.is_del,
-            };
-            categoies.push(cate);
+    }
+    pub fn levels(&self) -> Vec<super::CategoryLevel> {
+        if !self.has_categoies() {
+            return vec![];
         }
-
-        Self { brand, categoies }
+        let mut ls = Vec::with_capacity(self.categoies_len());
+        for level in self.levels.iter() {
+            let l = super::CategoryLevel::from_str(level.clone().unwrap().as_str()).unwrap();
+            ls.push(l);
+        }
+        ls
     }
 }
 
 impl From<pb::BrandWithCategoies> for BrandWithCategoies {
-    fn from(bc: pb::BrandWithCategoies) -> Self {
-        let brand = super::Brand::from(bc.brand.unwrap_or_default());
-        let mut categoies = Vec::with_capacity(bc.categoies.len());
+    fn from(pbc: pb::BrandWithCategoies) -> Self {
+        let b = pbc.brand.unwrap();
+        let mut ids = Vec::with_capacity(pbc.categoies.len());
+        let mut names = Vec::with_capacity(pbc.categoies.len());
+        let mut parents = Vec::with_capacity(pbc.categoies.len());
+        let mut paths = Vec::with_capacity(pbc.categoies.len());
+        let mut levels = Vec::with_capacity(pbc.categoies.len());
+        let mut datelines = Vec::with_capacity(pbc.categoies.len());
+        let mut is_dels = Vec::with_capacity(pbc.categoies.len());
+        let mut names_str = Vec::with_capacity(pbc.categoies.len());
 
-        for cate in bc.categoies {
-            categoies.push(cate.into())
+        for c in pbc.categoies.iter() {
+            ids.push(Some(c.id.clone()));
+            names.push(Some(c.name.clone()));
+            parents.push(Some(c.parent.clone()));
+            paths.push(Some(c.path.clone()));
+            levels.push(Some(format!("{:?}", super::CategoryLevel::from(c.level()))));
+            datelines.push(Some(dt::prost2chrono(&c.dateline)));
+            is_dels.push(Some(c.is_del));
+            names_str.push(c.name.clone());
         }
 
-        Self { brand, categoies }
+        let names_str = format!(",{},", names_str.join(","));
+
+        Self {
+            brand_id: b.id,
+            brand_name: b.name,
+            brand_logo: b.logo,
+            brand_is_del: b.is_del,
+            brand_dateline: dt::prost2chrono(&b.dateline),
+            ids,
+            names,
+            parents,
+            paths,
+            levels,
+            datelines,
+            is_dels,
+            names_str,
+        }
     }
 }
 
 impl Into<pb::BrandWithCategoies> for BrandWithCategoies {
     fn into(self) -> pb::BrandWithCategoies {
-        let brand = Some(self.brand.into());
-        let mut categoies = Vec::with_capacity(self.categoies.len());
+        let brand = pb::Brand {
+            id: self.brand_id.clone(),
+            name: self.brand_name.clone(),
+            logo: self.brand_logo.clone(),
+            is_del: self.brand_is_del,
+            dateline: dt::chrono2prost(&self.brand_dateline),
+        };
 
-        for cate in self.categoies {
-            categoies.push(cate.into());
+        let mut categoies = Vec::with_capacity(self.categoies_len());
+
+        if self.has_categoies() {
+            for i in 0..self.categoies_len() {
+                let c = pb::Category {
+                    id: self.ids[i].clone().unwrap(),
+                    name: self.names[i].clone().unwrap(),
+                    parent: self.parents[i].clone().unwrap(),
+                    path: self.paths[i].clone().unwrap(),
+                    level: self.levels[i].clone().unwrap().parse().unwrap(),
+                    dateline: dt::chrono2prost(&self.datelines[i].clone().unwrap()),
+                    is_del: self.is_dels[i].clone().unwrap(),
+                };
+                categoies.push(c);
+            }
         }
-        pb::BrandWithCategoies { brand, categoies }
+
+        pb::BrandWithCategoies {
+            brand: Some(brand),
+            categoies,
+        }
     }
 }
