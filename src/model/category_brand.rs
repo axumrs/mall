@@ -271,6 +271,24 @@ pub struct Tree {
     pub fullname: String,
 }
 
+impl From<pb::CategoryWithBrandsTree> for Tree {
+    fn from(t: pb::CategoryWithBrandsTree) -> Self {
+        Self {
+            category_with_brands: t.category_with_brands.unwrap().into(),
+            fullname: t.fullname,
+        }
+    }
+}
+
+impl Into<pb::CategoryWithBrandsTree> for Tree {
+    fn into(self) -> pb::CategoryWithBrandsTree {
+        pb::CategoryWithBrandsTree {
+            category_with_brands: Some(self.category_with_brands.into()),
+            fullname: self.fullname,
+        }
+    }
+}
+
 // --- 查找分类 ---
 pub struct FindCategoryWithBrandsRequest {
     pub by: FindCategoryBy,

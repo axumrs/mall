@@ -154,6 +154,24 @@ pub struct TreePure {
     pub fullname: String,
 }
 
+impl From<pb::CategoryTree> for TreePure {
+    fn from(t: pb::CategoryTree) -> Self {
+        Self {
+            category: Category::from(t.category.unwrap()),
+            fullname: t.fullname,
+        }
+    }
+}
+
+impl Into<pb::CategoryTree> for TreePure {
+    fn into(self) -> pb::CategoryTree {
+        pb::CategoryTree {
+            category: Some(self.category.into()),
+            fullname: self.fullname,
+        }
+    }
+}
+
 // ---- 查找分类 ----
 
 pub enum FindCategoryBy {

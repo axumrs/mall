@@ -278,21 +278,48 @@ impl GoodsService for Goods {
         &self,
         request: tonic::Request<pb::FindCategoryRequest>,
     ) -> std::result::Result<tonic::Response<pb::FindCategoryResponse>, tonic::Status> {
-        unimplemented!()
+        let r: model::FindCategoryRequest = request.into_inner().into();
+        let cate = db::category::find(&self.pool, &r).await.map_err(ce2s)?;
+        let cate: Option<pb::Category> = match cate {
+            Some(c) => Some(c.into()),
+            None => None,
+        };
+        Ok(tonic::Response::new(pb::FindCategoryResponse {
+            category: cate,
+        }))
     }
     /// 分类列表
     async fn list_category(
         &self,
         request: tonic::Request<pb::ListCategoryRequest>,
     ) -> std::result::Result<tonic::Response<pb::ListCategoryResponse>, tonic::Status> {
-        unimplemented!()
+        let r = model::ListCategoryRequest::from(request.into_inner());
+        let rs = db::category::list(&self.pool, &r).await.map_err(ce2s)?;
+        let paginate = rs.to_pb();
+
+        let mut categories = Vec::with_capacity(rs.data.len());
+        for c in rs.data {
+            categories.push(c.into());
+        }
+        Ok(tonic::Response::new(pb::ListCategoryResponse {
+            paginate: Some(paginate),
+            categoies: categories,
+        }))
     }
     /// 分类树
     async fn category_tree(
         &self,
         request: tonic::Request<pb::CategoryTreeRequest>,
     ) -> std::result::Result<tonic::Response<pb::CategoryTreeResponse>, tonic::Status> {
-        unimplemented!()
+        let r = model::CategoryTreeRequest::from(request.into_inner());
+        let tree_db = db::category::tree(&*self.pool, &r).await.map_err(e2s)?;
+
+        let mut tree = Vec::with_capacity(tree_db.len());
+        for t in tree_db {
+            tree.push(t.into());
+        }
+
+        Ok(tonic::Response::new(pb::CategoryTreeResponse { tree }))
     }
     /// 查找带品牌信息的分类
     async fn find_category_with_brands(
@@ -300,7 +327,18 @@ impl GoodsService for Goods {
         request: tonic::Request<pb::FindCategoryWithBrandsRequest>,
     ) -> std::result::Result<tonic::Response<pb::FindCategoryWithBrandsResponse>, tonic::Status>
     {
-        unimplemented!()
+        let r = model::FindCategoryWithBrandsRequest::from(request.into_inner());
+        let cate = db::category_brand::find_category(&*self.pool, &r)
+            .await
+            .map_err(e2s)?;
+        let cate = match cate {
+            Some(c) => Some(c.into()),
+            None => None,
+        };
+
+        Ok(tonic::Response::new(pb::FindCategoryWithBrandsResponse {
+            category: cate,
+        }))
     }
     /// 带品牌信息分类列表
     async fn list_category_with_brands(
@@ -308,7 +346,20 @@ impl GoodsService for Goods {
         request: tonic::Request<pb::ListCategoryWithBrandsRequest>,
     ) -> std::result::Result<tonic::Response<pb::ListCategoryWithBrandsResponse>, tonic::Status>
     {
-        unimplemented!()
+        let r = model::ListCategoryWithBrandsRequest::from(request.into_inner());
+        let rs = db::category_brand::list_with_brands(&self.pool, &r)
+            .await
+            .map_err(ce2s)?;
+        let paginate = rs.to_pb();
+
+        let mut categories = Vec::with_capacity(rs.data.len());
+        for c in rs.data {
+            categories.push(c.into());
+        }
+        Ok(tonic::Response::new(pb::ListCategoryWithBrandsResponse {
+            paginate: Some(paginate),
+            categoies: categories,
+        }))
     }
     /// 带品牌信息分类树
     async fn category_with_brands_tree(
@@ -316,7 +367,19 @@ impl GoodsService for Goods {
         request: tonic::Request<pb::CategoryTreeRequest>,
     ) -> std::result::Result<tonic::Response<pb::CategoryWithBrandsTreeResponse>, tonic::Status>
     {
-        unimplemented!()
+        let r = model::CategoryTreeRequest::from(request.into_inner());
+        let tree_db = db::category_brand::tree(&*self.pool, &r)
+            .await
+            .map_err(e2s)?;
+
+        let mut tree = Vec::with_capacity(tree_db.len());
+        for t in tree_db {
+            tree.push(t.into());
+        }
+
+        Ok(tonic::Response::new(pb::CategoryWithBrandsTreeResponse {
+            tree,
+        }))
     }
     /// 查找带分类信息的品牌
     async fn find_brand_with_categoies(
@@ -324,7 +387,17 @@ impl GoodsService for Goods {
         request: tonic::Request<pb::FindBrandWithCategoiesRequest>,
     ) -> std::result::Result<tonic::Response<pb::FindBrandWithCategoiesResponse>, tonic::Status>
     {
-        unimplemented!()
+        let r = model::FindBrandWithCategoriesRequest::from(request.into_inner());
+        let brand = db::category_brand::find_brand(&*self.pool, &r)
+            .await
+            .map_err(e2s)?;
+        let brand = match brand {
+            Some(b) => Some(b.into()),
+            None => None,
+        };
+        Ok(tonic::Response::new(pb::FindBrandWithCategoiesResponse {
+            brand,
+        }))
     }
     /// 带分类信息品牌列表
     async fn list_brand_with_categoies(
@@ -332,21 +405,56 @@ impl GoodsService for Goods {
         request: tonic::Request<pb::ListBrandWithCategoiesRequest>,
     ) -> std::result::Result<tonic::Response<pb::ListBrandWithCategoiesResponse>, tonic::Status>
     {
-        unimplemented!()
+        let r = model::ListBrandWithCategoriesRequest::from(request.into_inner());
+        let rs = db::category_brand::list_with_categoies(&self.pool, &r)
+            .await
+            .map_err(ce2s)?;
+        let paginate = rs.to_pb();
+
+        let mut brands = Vec::with_capacity(rs.data.len());
+        for b in rs.data {
+            brands.push(b.into());
+        }
+
+        Ok(tonic::Response::new(pb::ListBrandWithCategoiesResponse {
+            paginate: Some(paginate),
+            brands,
+        }))
     }
     /// 设置分类-品牌
     async fn set_category_brands(
         &self,
         request: tonic::Request<pb::SetCategoryBrandsRequest>,
     ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
-        unimplemented!()
+        let r = model::SetCategoryBrandRequest::from(request.into_inner());
+        let cr = model::ClearCategoryBrandsRequest {
+            category_id: r.category_id.clone(),
+        };
+        let mut tx = self.pool.begin().await.map_err(e2s)?;
+        if let Err(e) = db::category_brand::clear(&mut *tx, &cr).await {
+            tx.rollback().await.map_err(e2s)?;
+            return Err(e2s(e));
+        };
+        let aff = match db::category_brand::set(&mut *tx, &r).await {
+            Ok(aff) => aff,
+            Err(e) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+        };
+        tx.commit().await.map_err(e2s)?;
+        Ok(tonic::Response::new(pb::Aff { rows: aff }))
     }
     /// 清空分类的品牌
     async fn clear_category_brands(
         &self,
         request: tonic::Request<pb::ClearCategoryBrandsRequest>,
     ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
-        unimplemented!()
+        let r = model::ClearCategoryBrandsRequest::from(request.into_inner());
+        let aff = db::category_brand::clear(&*self.pool, &r)
+            .await
+            .map_err(e2s)?;
+        Ok(tonic::Response::new(pb::Aff { rows: aff }))
     }
     /// 创建带品牌的分类
     async fn create_category_with_brands(
@@ -354,6 +462,56 @@ impl GoodsService for Goods {
         request: tonic::Request<pb::CreateCategoryWithBrandsRequest>,
     ) -> std::result::Result<tonic::Response<pb::CreateCategoryWithBrandsResponse>, tonic::Status>
     {
-        unimplemented!()
+        let r = request.into_inner();
+        let cate = model::Category::from(r.category.unwrap());
+
+        let exists_req = model::CategoryExistsRequest {
+            name_and_parent: model::CategoryNameAndParentRequest {
+                name: cate.name.clone(),
+                parent: cate.parent.clone(),
+            },
+            id: None,
+        };
+
+        let mut tx = self.pool.begin().await.map_err(e2s)?;
+
+        let exists = match db::category::exists(&mut *tx, &exists_req).await {
+            Ok(exists) => exists,
+            Err(e) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+        };
+        if exists {
+            tx.rollback().await.map_err(e2s)?;
+            return Err(tonic::Status::already_exists("同名的分类已存在"));
+        }
+
+        let id = match db::category::create(&mut *tx, &cate).await {
+            Ok(id) => id,
+            Err(e) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+        };
+
+        let set_r = model::SetCategoryBrandRequest {
+            category_id: id.clone(),
+            brand_ids: r.brand_ids,
+        };
+
+        let aff = match db::category_brand::set(&mut *tx, &set_r).await {
+            Ok(aff) => aff,
+            Err(e) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+        };
+        tx.commit().await.map_err(e2s)?;
+
+        Ok(tonic::Response::new(pb::CreateCategoryWithBrandsResponse {
+            id: Some(pb::Id { value: id }),
+            aff: Some(pb::Aff { rows: aff }),
+        }))
     }
 }
