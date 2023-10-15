@@ -91,13 +91,57 @@ pub async fn list_with_brands(
 }
 
 /// 品牌分类列表
-pub async fn list_with_categoies<'a>(
-    e: impl sqlx::PgExecutor<'a>,
-) -> Result<Vec<model::BrandWithCategoies>, sqlx::Error> {
+pub async fn list_with_categoies(
+    conn: &sqlx::PgPool,
+    r: &model::ListBrandWithCategoriesRequest,
+) -> crate::Result<super::Paginate<model::BrandWithCategoies>> {
     let mut q = sqlx::QueryBuilder::new(
-        r#"SELECT brand_id, brand_name, brand_logo, brand_is_del, brand_dateline, ids, names, names_str, parents, levels, paths, datelines, is_dels FROM v_brand_with_categoies"#,
+        r#"SELECT brand_id, brand_name, brand_logo, brand_is_del, brand_dateline, ids, names, names_str, parents, levels, paths, datelines, is_dels FROM v_brand_with_categoies WHERE 1=1"#,
     );
-    q.build_query_as().fetch_all(e).await
+    let mut qc = sqlx::QueryBuilder::new("SELECT COUNT(*) FROM v_brand_with_categoies WHERE 1=1");
+
+    if let Some(is_del) = &r.is_del {
+        let sql = " AND brand_is_del = ";
+
+        q.push(sql).push_bind(is_del);
+        qc.push(sql).push_bind(is_del);
+    }
+
+    if let Some(category_name) = &r.category_name {
+        let sql = " AND names_str ILIKE ";
+        let arg = format!("%,%{}%,%", category_name);
+
+        q.push(sql).push_bind(arg.clone());
+        qc.push(sql).push_bind(arg);
+    }
+
+    if let Some(name) = &r.name {
+        let sql = " AND brand_name ILIKE ";
+        let arg = format!("%{}%", name);
+
+        q.push(sql).push_bind(arg.clone());
+        qc.push(sql).push_bind(arg);
+    }
+
+    q.push(" ORDER BY brand_id DESC");
+    q.push(" LIMIT ")
+        .push_bind(r.paginate.page_size())
+        .push(" OFFSET ")
+        .push_bind(r.paginate.offset());
+
+    let count: (i64,) = qc
+        .build_query_as()
+        .fetch_one(conn)
+        .await
+        .map_err(Error::from)?;
+
+    let data = q
+        .build_query_as()
+        .fetch_all(conn)
+        .await
+        .map_err(Error::from)?;
+
+    Ok(super::Paginate::quick(&r.paginate, &count, data))
 }
 
 /// 查找带品牌信息的分类
@@ -296,10 +340,22 @@ mod test {
 
     #[tokio::test]
     async fn test_db_list_with_categoies() {
+        let r = model::ListBrandWithCategoriesRequest {
+            paginate: db::PaginateRequest {
+                page: 0,
+                page_size: 3,
+            },
+            name: Some("sql".to_string()),
+            is_del: Some(false),
+            category_name: Some("分类".to_string()),
+        };
         let conn = get_conn().await;
-        let bcs = super::list_with_categoies(&conn).await.unwrap();
-        for bc in bcs.iter() {
-            println!("{:?}", bc.levels());
+        let p = super::list_with_categoies(&conn, &r).await.unwrap();
+
+        println!("{}, {}", p.total, p.total_page);
+
+        for bc in p.data.iter() {
+            println!("{:?}", bc);
         }
     }
 
