@@ -137,10 +137,25 @@ pub async fn find_category<'a>(
 /// 查找带分类信息的品牌
 pub async fn find_brand<'a>(
     e: impl sqlx::PgExecutor<'a>,
+    r: &model::FindBrandWithCategoriesRequest,
 ) -> Result<Option<model::BrandWithCategoies>, sqlx::Error> {
     let mut q = sqlx::QueryBuilder::new(
-        r#"SELECT brand_id, brand_name, brand_logo, brand_is_del, brand_dateline, ids, names, names_str, parents, levels, paths, datelines, is_dels FROM v_brand_with_categoies"#,
+        r#"SELECT brand_id, brand_name, brand_logo, brand_is_del, brand_dateline, ids, names, names_str, parents, levels, paths, datelines, is_dels FROM v_brand_with_categoies WHERE 1=1"#,
     );
+    match &r.by {
+        model::BrandFindBy::ID(id) => q.push(" AND brand_id=").push_bind(id),
+        model::BrandFindBy::Name(name) => q.push(" AND name=").push_bind(name),
+    };
+
+    if let Some(is_del) = &r.is_del {
+        q.push(" AND brand_is_del = ").push_bind(is_del);
+    }
+
+    if let Some(category_name) = &r.category_name {
+        q.push(" AND names_str ILIKE ")
+            .push_bind(format!("%,%{}%,%", category_name));
+    }
+
     q.build_query_as().fetch_optional(e).await
 }
 
@@ -323,5 +338,19 @@ mod test {
         let conn = get_conn().await;
         let cb = super::find_category(&conn, &r).await.unwrap();
         println!("{:?}", cb);
+    }
+
+    #[tokio::test]
+    async fn test_db_find_brand_with_categoies() {
+        let by = model::BrandFindBy::ID("ckkfkpsdrfak8jh3svh0".to_string());
+        let r = model::FindBrandWithCategoriesRequest {
+            by,
+            is_del: Some(false),
+            category_name: Some("分类".to_string()),
+        };
+        let conn = get_conn().await;
+        let bc = super::find_brand(&conn, &r).await.unwrap();
+
+        println!("{:?}", bc);
     }
 }
