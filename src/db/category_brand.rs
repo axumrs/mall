@@ -46,10 +46,34 @@ pub async fn list_with_categoies<'a>(
 /// 查找带品牌信息的分类
 pub async fn find_category<'a>(
     e: impl sqlx::PgExecutor<'a>,
+    r: &model::FindCategoryWithBrandsRequest,
 ) -> Result<Option<model::CategoryWithBrands>, sqlx::Error> {
     let mut q = sqlx::QueryBuilder::new(
-        r#"SELECT id, "name", parent, "path", "level", dateline, is_del, brand_ids, brand_names, brand_logos, brand_is_dels, brand_datelines, brand_names_str FROM v_category_with_brands ORDER BY id DESC"#,
+        r#"SELECT id, "name", parent, "path", "level", dateline, is_del, brand_ids, brand_names, brand_logos, brand_is_dels, brand_datelines, brand_names_str FROM v_category_with_brands WHERE 1=1"#,
     );
+    match &r.by {
+        model::FindCategoryBy::ID(id) => q.push(" AND id=").push_bind(id),
+        model::FindCategoryBy::NameAndParent(nap) => q
+            .push(" AND (name=")
+            .push_bind(&nap.name)
+            .push(" AND parent=")
+            .push_bind(&nap.parent)
+            .push(")"),
+    };
+
+    if let Some(is_del) = &r.is_del {
+        q.push(" AND is_del = ").push_bind(is_del);
+    }
+
+    if let Some(level) = &r.level {
+        q.push(" AND level = ").push_bind(level);
+    }
+
+    if let Some(brand_name) = &r.brand_name {
+        q.push(" AND brand_names_str ILIKE ")
+            .push_bind(format!("%,%{}%,%", brand_name));
+    }
+
     q.build_query_as().fetch_optional(e).await
 }
 
@@ -57,7 +81,7 @@ pub async fn find_category<'a>(
 pub async fn find_brand<'a>(
     e: impl sqlx::PgExecutor<'a>,
 ) -> Result<Option<model::BrandWithCategoies>, sqlx::Error> {
-    let mut q: sqlx::QueryBuilder<'_, sqlx_postgres::Postgres> = sqlx::QueryBuilder::new(
+    let mut q = sqlx::QueryBuilder::new(
         r#"SELECT brand_id, brand_name, brand_logo, brand_is_del, brand_dateline, ids, names, names_str, parents, levels, paths, datelines, is_dels FROM v_brand_with_categoies"#,
     );
     q.build_query_as().fetch_optional(e).await
@@ -85,6 +109,7 @@ pub async fn clear<'a>(
 
 #[cfg(test)]
 mod test {
+    use crate::model;
 
     async fn get_conn() -> sqlx::PgPool {
         sqlx::postgres::PgPoolOptions::new()
@@ -168,5 +193,22 @@ mod test {
         for tree in trees.iter() {
             println!("{:?}", tree);
         }
+    }
+
+    #[tokio::test]
+    async fn test_db_find_category_with_brands() {
+        let r = model::FindCategoryWithBrandsRequest {
+            // by: model::FindCategoryBy::ID("cji1llcdrfap1bhmp76g".to_string()),
+            by: model::FindCategoryBy::NameAndParent(model::CategoryNameAndParentRequest {
+                name: "一级分类2".to_string(),
+                parent: "".to_string(),
+            }),
+            is_del: Some(false),
+            level: Some(model::CategoryLevel::Level1),
+            brand_name: Some("Rust".to_string()),
+        };
+        let conn = get_conn().await;
+        let cb = super::find_category(&conn, &r).await.unwrap();
+        println!("{:?}", cb);
     }
 }

@@ -1017,7 +1017,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
- "sqlx-postgres",
  "tokio",
  "tonic",
  "tonic-build",

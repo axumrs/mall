@@ -16,7 +16,7 @@ prost = "0.11"
 prost-types = "0.11"
 tonic = "0.9"
 sqlx = { version = "0.7", features = ["runtime-tokio", "postgres", "chrono"] }
-sqlx-postgres = "0.7"
+#sqlx-postgres = "0.7"
 # rs-snowflake="0.6"
 bcrypt = "0.15"
 #config = "0.13"
