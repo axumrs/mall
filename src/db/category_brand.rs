@@ -1,4 +1,4 @@
-use crate::model;
+use crate::{model, Error};
 
 /// 设置品牌分类
 ///
@@ -24,13 +24,70 @@ pub async fn set<'a>(
 }
 
 /// 分类品牌列表
-pub async fn list_with_brands<'a>(
-    e: impl sqlx::PgExecutor<'a>,
-) -> Result<Vec<model::CategoryWithBrands>, sqlx::Error> {
+pub async fn list_with_brands(
+    conn: &sqlx::PgPool,
+    r: &model::ListCategoryWithBrandsRequest,
+) -> crate::Result<super::Paginate<model::CategoryWithBrands>> {
     let mut q = sqlx::QueryBuilder::new(
-        r#"SELECT id, "name", parent, "path", "level", dateline, is_del, brand_ids, brand_names, brand_logos, brand_is_dels, brand_datelines, brand_names_str FROM v_category_with_brands ORDER BY id DESC"#,
+        r#"SELECT id, "name", parent, "path", "level", dateline, is_del, brand_ids, brand_names, brand_logos, brand_is_dels, brand_datelines, brand_names_str FROM v_category_with_brands WHERE 1=1"#,
     );
-    q.build_query_as().fetch_all(e).await
+    let mut qc = sqlx::QueryBuilder::new("SELECT COUNT(*) FROM v_category_with_brands WHERE 1=1");
+
+    if let Some(name) = &r.name {
+        let sql = " AND name ILIKE ";
+        let arg = format!("%{}%", name);
+
+        q.push(sql).push_bind(arg.clone());
+        qc.push(sql).push_bind(arg);
+    }
+
+    if let Some(is_del) = &r.is_del {
+        let sql = " AND is_del=";
+
+        q.push(sql).push_bind(is_del);
+        qc.push(sql).push_bind(is_del);
+    }
+
+    if let Some(parent) = &r.parent {
+        let sql = " AND parent=";
+
+        q.push(sql).push_bind(parent);
+        qc.push(sql).push_bind(parent);
+    }
+
+    if let Some(level) = &r.level {
+        let sql = " AND level=";
+
+        q.push(sql).push_bind(level);
+        qc.push(sql).push_bind(level);
+    }
+
+    if let Some(brand_name) = &r.brand_name {
+        let sql = " AND brand_names_str ILIKE ";
+        let arg = format!("%,%{}%,%", brand_name);
+
+        q.push(sql).push_bind(arg.clone());
+        qc.push(sql).push_bind(arg);
+    }
+
+    q.push(" ORDER BY id DESC");
+    q.push(" LIMIT ")
+        .push_bind(r.paginate.page_size())
+        .push(" OFFSET ")
+        .push_bind(r.paginate.offset());
+
+    let count: (i64,) = qc
+        .build_query_as()
+        .fetch_one(conn)
+        .await
+        .map_err(Error::from)?;
+    let data = q
+        .build_query_as()
+        .fetch_all(conn)
+        .await
+        .map_err(Error::from)?;
+
+    Ok(super::Paginate::quick(&r.paginate, &count, data))
 }
 
 /// 品牌分类列表
@@ -109,7 +166,7 @@ pub async fn clear<'a>(
 
 #[cfg(test)]
 mod test {
-    use crate::model;
+    use crate::{db, model};
 
     async fn get_conn() -> sqlx::PgPool {
         sqlx::postgres::PgPoolOptions::new()
@@ -170,10 +227,22 @@ mod test {
 
     #[tokio::test]
     async fn test_db_list_with_brands() {
+        let r = model::ListCategoryWithBrandsRequest {
+            paginate: db::PaginateRequest {
+                page: 0,
+                page_size: 3,
+            },
+            name: Some("分类".to_string()),
+            is_del: Some(false),
+            parent: Some("".to_string()),
+            level: Some(model::CategoryLevel::Level1),
+            brand_name: Some("Rust".to_string()),
+        };
         let conn = get_conn().await;
-        let cbs = super::list_with_brands(&conn).await.unwrap();
-        for cb in cbs.iter() {
-            println!("{:?} , {}", cb.has_brands(), cb.brands_len());
+        let p = super::list_with_brands(&conn, &r).await.unwrap();
+        println!("{}, {}", p.total_page, p.total);
+        for cb in p.data.iter() {
+            println!("{:?}", cb);
         }
     }
 
