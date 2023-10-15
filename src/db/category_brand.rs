@@ -5,14 +5,13 @@ use crate::{model, Error};
 /// **通常需要先调用 `clear()` 函数清空已设置的品牌**
 pub async fn set<'a>(
     e: impl sqlx::PgExecutor<'a>,
-    category_id: &'a str,
-    brand_ids: &'a [&'a str],
+    r: &model::SetCategoryBrandRequest,
 ) -> Result<u64, sqlx::Error> {
     let mut q = sqlx::QueryBuilder::new("INSERT INTO category_brands (brand_id,category_id) ");
 
-    let args = brand_ids.iter().map(|&bid| model::CategoryBrand {
-        brand_id: bid.to_string(),
-        category_id: category_id.to_string(),
+    let args = r.brand_ids.iter().map(|bid| model::CategoryBrand {
+        brand_id: bid.clone(),
+        category_id: r.category_id.clone(),
     });
 
     q.push_values(args, |mut b, cb| {
@@ -247,10 +246,10 @@ pub async fn tree<'a>(
 /// 清空品牌的分类
 pub async fn clear<'a>(
     e: impl sqlx::PgExecutor<'a>,
-    category_id: &'a str,
+    r: &model::ClearCategoryBrandsRequest,
 ) -> Result<u64, sqlx::Error> {
     let r = sqlx::query("DELETE FROM category_brands WHERE category_id = $1")
-        .bind(category_id)
+        .bind(&r.category_id)
         .execute(e)
         .await?;
     return Ok(r.rows_affected());
@@ -288,7 +287,7 @@ mod test {
         //         panic!("failed to create category: {:?}", e);
         //     }
         // };
-        let cate_id = "cji1llcdrfap1bhmp76g".to_string();
+        let cate_id = "ckkfod4drfam60t44b5g".to_string();
         let brand_ids = vec![
             "ckkfkpsdrfak8jh3sveg",
             "ckkfkpsdrfak8jh3svf0",
@@ -298,7 +297,11 @@ mod test {
             "ckkfkpsdrfak8jh3svh0",
             "ckkfkpsdrfak8jh3svhg",
         ];
-        let r = match super::set(&mut *tx, &cate_id, &brand_ids).await {
+        let r = model::SetCategoryBrandRequest {
+            category_id: cate_id,
+            brand_ids: brand_ids.iter().map(|&bid| bid.to_string()).collect(),
+        };
+        let r = match super::set(&mut *tx, &r).await {
             Ok(r) => r,
             Err(e) => {
                 tx.rollback().await.unwrap();
@@ -313,7 +316,15 @@ mod test {
     async fn test_db_clear_category_brands() {
         let conn = get_conn().await;
         let category_id = "ckkfod4drfam60t44b5g";
-        let r = super::clear(&conn, category_id).await.unwrap();
+
+        let r = super::clear(
+            &conn,
+            &model::ClearCategoryBrandsRequest {
+                category_id: category_id.to_string(),
+            },
+        )
+        .await
+        .unwrap();
         assert!(r > 0);
     }
 
