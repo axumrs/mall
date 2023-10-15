@@ -342,8 +342,8 @@ pub struct CategoryExistsRequest {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CategoryTreeRequest {
-    #[prost(string, optional, tag = "3")]
-    pub id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, optional, tag = "3")]
+    pub is_del: ::core::option::Option<bool>,
     #[prost(enumeration = "CategoryLevel", optional, tag = "4")]
     pub level: ::core::option::Option<i32>,
     #[prost(string, optional, tag = "5")]

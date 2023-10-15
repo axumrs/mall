@@ -251,7 +251,7 @@ pub enum CategoryTreeBy {
 
 pub struct CategoryTreeRequest {
     pub by: CategoryTreeBy,
-    pub id: Option<String>,
+    pub is_del: Option<bool>,
     pub level: Option<CategoryLevel>,
     pub name: Option<String>,
 }
@@ -272,7 +272,7 @@ impl From<pb::CategoryTreeRequest> for CategoryTreeRequest {
 
         Self {
             by,
-            id: r.id,
+            is_del: r.is_del,
             level,
             name: r.name,
         }
@@ -295,7 +295,7 @@ impl Into<pb::CategoryTreeRequest> for CategoryTreeRequest {
         };
 
         pb::CategoryTreeRequest {
-            id: self.id,
+            is_del: self.is_del,
             level,
             name: self.name,
             by,

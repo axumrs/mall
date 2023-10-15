@@ -1,4 +1,4 @@
-use crate::{model, utils};
+use crate::{model, utils, Error};
 
 /// 创建
 pub async fn create<'a, E>(e: E, c: &model::Category) -> Result<String, sqlx::Error>
@@ -86,9 +86,129 @@ pub async fn del_or_restore(conn: &sqlx::PgPool, id: String, is_del: bool) -> cr
     super::del_or_restore(conn, "categoies", id, is_del).await
 }
 
+/// 查找
+pub async fn find(
+    conn: &sqlx::PgPool,
+    r: &model::FindCategoryRequest,
+) -> crate::Result<Option<model::Category>> {
+    let mut q = sqlx::QueryBuilder::new(
+        r#"SELECT id, "name", parent, "path", "level", dateline, is_del FROM categoies WHERE 1=1"#,
+    );
+    match &r.by {
+        model::FindCategoryBy::ID(id) => q.push(" AND id=").push_bind(id),
+        model::FindCategoryBy::NameAndParent(nap) => q
+            .push(" AND (name=")
+            .push_bind(nap.name.clone())
+            .push(" AND parent=")
+            .push_bind(nap.parent.clone())
+            .push(")"),
+    };
+    if let Some(level) = r.level {
+        q.push(" AND level=").push_bind(level);
+    }
+
+    if let Some(is_del) = r.is_del {
+        q.push(" AND is_del=").push_bind(is_del);
+    }
+    let c = q
+        .build_query_as()
+        .fetch_optional(conn)
+        .await
+        .map_err(Error::from)?;
+    Ok(c)
+}
+
+// 列表
+pub async fn list(
+    conn: &sqlx::PgPool,
+    r: &model::ListCategoryRequest,
+) -> crate::Result<super::Paginate<model::Category>> {
+    let mut q = sqlx::QueryBuilder::new(
+        r#"SELECT id, "name", parent, "path", "level", dateline, is_del FROM categoies WHERE 1=1"#,
+    );
+    let mut qc = sqlx::QueryBuilder::new(r#"SELECT COUNT(*) FROM categoies WHERE 1=1"#);
+
+    if let Some(name) = &r.name {
+        let sql = " AND name ILIKE ";
+        let param = format!("%{}%", name);
+
+        q.push(sql).push_bind(param.clone());
+        qc.push(sql).push_bind(param);
+    }
+
+    if let Some(parent) = &r.parent {
+        let sql = " AND parent=";
+
+        q.push(sql).push_bind(parent.clone());
+        qc.push(sql).push_bind(parent);
+    }
+
+    if let Some(is_del) = &r.is_del {
+        let sql = " AND is_del=";
+
+        q.push(sql).push_bind(is_del);
+        qc.push(sql).push_bind(is_del);
+    }
+
+    if let Some(level) = &r.level {
+        let sql = " AND level=";
+
+        q.push(sql).push_bind(level);
+        qc.push(sql).push_bind(level);
+    }
+
+    q.push(" ORDER BY id DESC");
+
+    q.push(" LIMIT ")
+        .push_bind(r.paginate.page_size())
+        .push(" OFFSET ")
+        .push_bind(r.paginate.offset());
+
+    let count: (i64,) = qc
+        .build_query_as()
+        .fetch_one(conn)
+        .await
+        .map_err(Error::from)?;
+
+    let ls = q
+        .build_query_as()
+        .fetch_all(conn)
+        .await
+        .map_err(Error::from)?;
+    Ok(super::Paginate::quick(&r.paginate, &count, ls))
+}
+
 /// 分类树
-pub async fn tree<'a>(e: impl sqlx::PgExecutor<'a>) -> Result<Vec<model::TreePure>, sqlx::Error> {
-    let mut q = sqlx::QueryBuilder::new(r#""#);
+pub async fn tree<'a>(
+    e: impl sqlx::PgExecutor<'a>,
+    r: &model::CategoryTreeRequest,
+) -> Result<Vec<model::TreePure>, sqlx::Error> {
+    let mut q = sqlx::QueryBuilder::new(
+        r#"SELECT id, "name", parent, "path", "level"::category_level as "level", dateline, is_del, fullname FROM v_tree_pure WHERE 1=1"#,
+    );
+    match &r.by {
+        model::CategoryTreeBy::Parent(parent) => q.push(" AND parent=").push_bind(parent),
+        model::CategoryTreeBy::Path(path) => {
+            q.push(" AND path LIKE ").push_bind(format!("//{}%/", path))
+        }
+    };
+
+    if let Some(name) = &r.name {
+        let sql = " AND name ILIKE ";
+        let param = format!("%{}%", name);
+
+        q.push(sql).push_bind(param);
+    }
+
+    if let Some(level) = &r.level {
+        let sql = " AND level =";
+        q.push(sql).push_bind(format!("{:?}", level));
+    }
+
+    if let Some(is_del) = &r.is_del {
+        q.push(" AND is_del=").push_bind(is_del);
+    }
+
     q.build_query_as().fetch_all(e).await
 }
 
@@ -270,10 +390,57 @@ mod test {
 
     #[tokio::test]
     async fn test_db_tree_pure() {
+        // let by = model::CategoryTreeBy::Parent("".to_string());
+        let by = model::CategoryTreeBy::Path("".to_string());
+        let r = model::CategoryTreeRequest {
+            by,
+            is_del: Some(false),
+            level: Some(model::CategoryLevel::Level1),
+            name: Some("关联".to_string()),
+        };
         let conn = get_conn().await;
-        let tree = super::tree(&conn).await.unwrap();
+        let tree = super::tree(&conn, &r).await.unwrap();
         for t in tree.iter() {
             println!("{:?}", t);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_db_find_category_pure() {
+        let by = model::FindCategoryBy::ID("cji1llcdrfap1bhmp76g".to_string());
+        let r = model::FindCategoryRequest {
+            by,
+            level: Some(model::CategoryLevel::Level1),
+            is_del: Some(false),
+        };
+        let conn = get_conn().await;
+        let cate = super::find(&conn, &r).await.unwrap();
+        println!("{:?}", cate);
+    }
+
+    #[tokio::test]
+    async fn test_db_list_category_pure() {
+        let r = model::ListCategoryRequest {
+            paginate: crate::db::PaginateRequest {
+                page: 0,
+                page_size: 3,
+            },
+            level: Some(model::CategoryLevel::Level1),
+            // level: None,
+            is_del: Some(false),
+            // is_del: None,
+            name: Some("分类".to_string()),
+            // name: None,
+            parent: Some("".to_string()),
+            // parent: None,
+        };
+
+        let conn = get_conn().await;
+        let p = super::list(&conn, &r).await.unwrap();
+        println!("{} {}", p.total_page, p.total);
+
+        for cate in p.data.iter() {
+            println!("{:?}", cate);
         }
     }
 }

@@ -100,7 +100,7 @@ message CategoryTreeRequest {
     // 根据path查找所有子节点
     string path = 2;
   }
-  optional string id = 3;
+  optional bool is_del = 3;
   optional CategoryLevel level = 4;
   optional string name = 5;
 }
