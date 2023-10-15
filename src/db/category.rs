@@ -189,7 +189,12 @@ pub async fn tree<'a>(
     match &r.by {
         model::CategoryTreeBy::Parent(parent) => q.push(" AND parent=").push_bind(parent),
         model::CategoryTreeBy::Path(path) => {
-            q.push(" AND path LIKE ").push_bind(format!("//{}%/", path))
+            let arg = if path.is_empty() {
+                format!("//%/")
+            } else {
+                format!("//%{}/%/", path)
+            };
+            q.push(" AND path LIKE ").push_bind(arg)
         }
     };
 
@@ -202,12 +207,14 @@ pub async fn tree<'a>(
 
     if let Some(level) = &r.level {
         let sql = " AND level =";
-        q.push(sql).push_bind(format!("{:?}", level));
+        q.push(sql).push_bind(level);
     }
 
     if let Some(is_del) = &r.is_del {
         q.push(" AND is_del=").push_bind(is_del);
     }
+
+    q.push(" ORDER BY path");
 
     q.build_query_as().fetch_all(e).await
 }

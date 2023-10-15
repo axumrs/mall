@@ -145,10 +145,43 @@ pub async fn find_brand<'a>(
 }
 
 /// 分类树，含品牌信息
-pub async fn tree<'a>(e: impl sqlx::PgExecutor<'a>) -> Result<Vec<model::Tree>, sqlx::Error> {
+pub async fn tree<'a>(
+    e: impl sqlx::PgExecutor<'a>,
+    r: &model::CategoryTreeRequest,
+) -> Result<Vec<model::Tree>, sqlx::Error> {
     let mut q = sqlx::QueryBuilder::new(
-        r#"SELECT id, "name", parent, "path", "level", dateline, is_del, brand_ids, brand_names, brand_logos, brand_is_dels, brand_datelines, brand_names_str, fullname FROM v_tree"#,
+        r#"SELECT id, "name", parent, "path", "level", dateline, is_del, brand_ids, brand_names, brand_logos, brand_is_dels, brand_datelines, brand_names_str, fullname FROM v_tree WHERE 1=1"#,
     );
+    match &r.by {
+        model::CategoryTreeBy::Parent(parent) => q.push(" AND parent=").push_bind(parent),
+        model::CategoryTreeBy::Path(path) => {
+            let arg = if path.is_empty() {
+                format!("//%/")
+            } else {
+                format!("//%{}/%/", path)
+            };
+            q.push(" AND path LIKE ").push_bind(arg)
+        }
+    };
+
+    if let Some(name) = &r.name {
+        let sql = " AND name ILIKE ";
+        let param = format!("%{}%", name);
+
+        q.push(sql).push_bind(param);
+    }
+
+    if let Some(level) = &r.level {
+        let sql = " AND level =";
+        q.push(sql).push_bind(level);
+    }
+
+    if let Some(is_del) = &r.is_del {
+        q.push(" AND is_del=").push_bind(is_del);
+    }
+
+    q.push(" ORDER BY path");
+
     q.build_query_as().fetch_all(e).await
 }
 
@@ -256,12 +289,23 @@ mod test {
     }
 
     #[tokio::test]
-    async fn test_db_tree() {
+    async fn test_db_tree_with_brands() {
+        let r = model::CategoryTreeRequest {
+            // by: model::CategoryTreeBy::Parent("cji1llcdrfap1bhmp74g".to_string()),
+            by: model::CategoryTreeBy::Path("cji1llcdrfap1bhmp74g".to_string()),
+            is_del: Some(false),
+            // level: Some(model::CategoryLevel::Level3),
+            level: None,
+            name: None,
+        };
         let conn = get_conn().await;
-        let trees = super::tree(&conn).await.unwrap();
+        let trees = super::tree(&conn, &r).await.unwrap();
+
         for tree in trees.iter() {
             println!("{:?}", tree);
         }
+
+        println!("{}", trees.len());
     }
 
     #[tokio::test]
