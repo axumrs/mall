@@ -2,6 +2,7 @@ pub mod banner;
 pub mod brand;
 pub mod category;
 pub mod category_brand;
+pub mod goods;
 pub mod paginate;
 pub mod user;
 
