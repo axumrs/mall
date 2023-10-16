@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package pb;
+
+message Banner {
+  string id = 1;
+  string img = 2;
+  string url = 3;
+  int32 sort = 4;
+  string title = 5;
+  bool is_del = 6;
+}

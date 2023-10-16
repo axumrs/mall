@@ -38,3 +38,13 @@ CREATE TABLE IF NOT EXISTS "category_brands" ( -- 商品分类与品牌
     "category_id" CHAR(20) NOT NULL, -- 分类ID
     PRIMARY KEY("brand_id", "category_id")
 );
+
+
+CREATE TABLE IF NOT EXISTS "banners" ( -- 轮播图
+    "id" CHAR(20) PRIMARY KEY,
+    "img" VARCHAR(255) NOT NULL, -- 图片地址
+    "url" VARCHAR(255) NOT NULL, -- 链接地址
+    "sort" INTEGER NOT NULL DEFAULT 0, -- 排序
+    "title" VARCHAR(50) NOT NULL, -- 标题
+    "is_del" BOOLEAN NOT NULL DEFAULT FALSE
+);
