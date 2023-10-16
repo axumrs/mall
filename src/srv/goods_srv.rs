@@ -514,4 +514,47 @@ impl GoodsService for Goods {
             aff: Some(pb::Aff { rows: aff }),
         }))
     }
+
+    /// 创建商品
+    async fn create_goods(
+        &self,
+        request: tonic::Request<pb::Goods>,
+    ) -> std::result::Result<tonic::Response<pb::Id>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 修改商品
+    async fn edit_goods(
+        &self,
+        request: tonic::Request<pb::Goods>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 删除/还原商品
+    async fn delete_or_restore_goods(
+        &self,
+        request: tonic::Request<pb::DeleteOrRestoreRequest>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 查找商品
+    async fn find_goods(
+        &self,
+        request: tonic::Request<pb::FindGoodsRequest>,
+    ) -> std::result::Result<tonic::Response<pb::FindGoodsResponse>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 商品列表
+    async fn list_goods(
+        &self,
+        request: tonic::Request<pb::ListGoodsRequest>,
+    ) -> std::result::Result<tonic::Response<pb::ListGoodsResponse>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 商品是否存在
+    async fn goods_exists(
+        &self,
+        request: tonic::Request<pb::GoodsExistsRequest>,
+    ) -> std::result::Result<tonic::Response<pb::IsExistsResponse>, tonic::Status> {
+        unimplemented!()
+    }
 }

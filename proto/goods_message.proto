@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/timestamp.proto";
+
+message Goods {
+  string id = 1;
+  string category_id = 2;
+  string name = 3;
+  string sn = 4;
+  bool is_sale = 5;
+  uint32 ship_fee = 6;
+  bool is_new = 7;
+  bool is_hot = 8;
+  uint64 hit = 9;
+  uint64 sold_num = 10;
+  uint64 fav_num = 11;
+  uint32 origin_price = 12;
+  uint32 price = 13;
+  string brief = 14;
+  string cover = 15;
+  repeated string images = 16;
+  string description = 17;
+  google.protobuf.Timestamp dateline = 18;
+  bool is_del = 19;
+}

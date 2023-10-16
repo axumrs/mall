@@ -5,11 +5,14 @@ package pb;
 import "brand_message.proto";
 import "category_message.proto";
 import "category_brand_message.proto";
+import "goods_message.proto";
 import "aff_message.proto";
 import "id_message.proto";
-// import "daterange_message.proto";
+import "daterange_message.proto";
 import "paginate_message.proto";
 import "del_or_restore_message.proto";
+import "is_exists_message.proto";
+import "uintrange_message.proto";
 
 // 查找品牌请求
 message FindBrandRequest {
@@ -44,9 +47,6 @@ message BrandExistsRequest {
   string name = 1;
   optional string id = 2;
 }
-
-// 是否存在
-message IsExistsResponse { bool value = 1; }
 
 // 分类的名称和父分类
 message CategoryNameAndParentRequest {
@@ -205,6 +205,61 @@ message CreateCategoryWithBrandsResponse {
   Aff aff = 2;
 }
 
+// 查找商品请求
+message FindGoodsRequest {
+  oneof by {
+    string id = 1;
+    string sn = 2;
+  }
+  optional bool is_del = 3;
+}
+
+// 查找商品响应
+message FindGoodsResponse { optional Goods goods = 1; }
+
+enum ListGoodsOrder {
+  BY_ID = 0;
+  BY_IS_NEW = 1;
+  BY_IS_HOT = 2;
+  BY_HIT = 3;
+  BY_SOLD_NUM = 4;
+  BY_SHIP_FEE = 5;
+  BY_ORIGIN_PRICE = 6;
+  BY_PRICE = 7;
+  BY_IS_SALE = 8;
+}
+
+// 商品列表请求
+message ListGoodsRequest {
+  PaginateRequest paginate = 1;
+  optional string name = 2;
+  optional bool is_del = 3;
+  optional string sn = 4;
+  optional string category_id = 5;
+  optional U32Range ship_fee_range = 6;
+  optional U32Range origin_price_range = 7;
+  optional U32Range price_range = 8;
+  optional DateRange date_range = 9;
+  optional bool is_sale = 10;
+  optional ListGoodsOrder primary_order = 11;
+  optional ListGoodsOrder secondary_order = 12;
+}
+
+// 商品列表响应
+message ListGoodsResponse {
+  Paginate paginate = 1;
+  repeated Goods goods = 2;
+}
+
+// 商品是否存在请求
+message GoodsExistsRequest {
+  oneof by {
+    string name = 1;
+    string sn = 2;
+  }
+  optional string id = 3;
+}
+
 // 商品服务
 service GoodsService {
   // 创建品牌
@@ -261,4 +316,17 @@ service GoodsService {
   // 创建带品牌的分类
   rpc CreateCategoryWithBrands(CreateCategoryWithBrandsRequest)
       returns (CreateCategoryWithBrandsResponse);
+
+  // 创建商品
+  rpc CreateGoods(Goods) returns (ID);
+  // 修改商品
+  rpc EditGoods(Goods) returns (Aff);
+  // 删除/还原商品
+  rpc DeleteOrRestoreGoods(DeleteOrRestoreRequest) returns (Aff);
+  // 查找商品
+  rpc FindGoods(FindGoodsRequest) returns (FindGoodsResponse);
+  // 商品列表
+  rpc ListGoods(ListGoodsRequest) returns (ListGoodsResponse);
+  // 商品是否存在
+  rpc GoodsExists(GoodsExistsRequest) returns (IsExistsResponse);
 }

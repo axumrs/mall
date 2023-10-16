@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+package pb;
+
+// 是否存在
+message IsExistsResponse { bool value = 1; }
