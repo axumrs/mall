@@ -520,41 +520,166 @@ impl GoodsService for Goods {
         &self,
         request: tonic::Request<pb::Goods>,
     ) -> std::result::Result<tonic::Response<pb::Id>, tonic::Status> {
-        unimplemented!()
+        let g = model::Goods::from(request.into_inner());
+        let mut tx = self.pool.begin().await.map_err(e2s)?;
+
+        let name_exists = match db::goods::exists(
+            &mut *tx,
+            &model::GoodsExistsRequest {
+                by: model::GoodsExistsBy::Name(g.name.clone()),
+                id: None,
+            },
+        )
+        .await
+        {
+            Err(e) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+            Ok(e) => e,
+        };
+        let sn_exists = match db::goods::exists(
+            &mut *tx,
+            &model::GoodsExistsRequest {
+                by: model::GoodsExistsBy::SN(g.sn.clone()),
+                id: None,
+            },
+        )
+        .await
+        {
+            Err(e) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+            Ok(e) => e,
+        };
+
+        if name_exists {
+            return Err(tonic::Status::already_exists("同名的商品已经存在"));
+        }
+
+        if sn_exists {
+            return Err(tonic::Status::already_exists("相同的商品分类已经存在"));
+        }
+
+        let id = match db::goods::create(&*self.pool, &g).await {
+            Ok(id) => id,
+            Err(e) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+        };
+
+        tx.commit().await.map_err(e2s)?;
+        Ok(tonic::Response::new(pb::Id { value: id }))
     }
     /// 修改商品
     async fn edit_goods(
         &self,
         request: tonic::Request<pb::Goods>,
     ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
-        unimplemented!()
+        let g = model::Goods::from(request.into_inner());
+        let mut tx = self.pool.begin().await.map_err(e2s)?;
+
+        let name_exists = match db::goods::exists(
+            &mut *tx,
+            &model::GoodsExistsRequest {
+                by: model::GoodsExistsBy::Name(g.name.clone()),
+                id: Some(g.id.clone()),
+            },
+        )
+        .await
+        {
+            Err(e) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+            Ok(e) => e,
+        };
+        let sn_exists = match db::goods::exists(
+            &mut *tx,
+            &model::GoodsExistsRequest {
+                by: model::GoodsExistsBy::SN(g.sn.clone()),
+                id: Some(g.id.clone()),
+            },
+        )
+        .await
+        {
+            Err(e) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+            Ok(e) => e,
+        };
+
+        if name_exists {
+            return Err(tonic::Status::already_exists("同名的商品已经存在"));
+        }
+
+        if sn_exists {
+            return Err(tonic::Status::already_exists("相同的商品分类已经存在"));
+        }
+
+        let rows = match db::goods::edit(&mut *tx, &g).await {
+            Ok(aff) => aff,
+            Err(e) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(e));
+            }
+        };
+
+        Ok(tonic::Response::new(pb::Aff { rows }))
     }
     /// 删除/还原商品
     async fn delete_or_restore_goods(
         &self,
         request: tonic::Request<pb::DeleteOrRestoreRequest>,
     ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
-        unimplemented!()
+        let r = request.into_inner();
+        let rows = db::goods::del_or_restore(&self.pool, r.id, r.is_del)
+            .await
+            .map_err(ce2s)?;
+        Ok(tonic::Response::new(pb::Aff { rows }))
     }
     /// 查找商品
     async fn find_goods(
         &self,
         request: tonic::Request<pb::FindGoodsRequest>,
     ) -> std::result::Result<tonic::Response<pb::FindGoodsResponse>, tonic::Status> {
-        unimplemented!()
+        let r = model::FindGoodsRequest::from(request.into_inner());
+        let g = db::goods::find(&self.pool, &r).await.map_err(ce2s)?;
+        let goods = match g {
+            Some(g) => Some(g.into()),
+            None => None,
+        };
+        Ok(tonic::Response::new(pb::FindGoodsResponse { goods }))
     }
     /// 商品列表
     async fn list_goods(
         &self,
         request: tonic::Request<pb::ListGoodsRequest>,
     ) -> std::result::Result<tonic::Response<pb::ListGoodsResponse>, tonic::Status> {
-        unimplemented!()
+        let r = model::ListGoodsRequest::from(request.into_inner());
+        let p = db::goods::list(&self.pool, &r).await.map_err(ce2s)?;
+        let paginate = p.to_pb();
+
+        let mut goods = Vec::with_capacity(p.data.len());
+        for g in p.data {
+            goods.push(g.into());
+        }
+
+        Ok(tonic::Response::new(pb::ListGoodsResponse {
+            paginate: Some(paginate),
+            goods,
+        }))
     }
     /// 商品是否存在
     async fn goods_exists(
         &self,
         request: tonic::Request<pb::GoodsExistsRequest>,
     ) -> std::result::Result<tonic::Response<pb::IsExistsResponse>, tonic::Status> {
-        unimplemented!()
+        let r = model::GoodsExistsRequest::from(request.into_inner());
+        let exists = db::goods::exists(&*self.pool, &r).await.map_err(e2s)?;
+        Ok(tonic::Response::new(pb::IsExistsResponse { value: exists }))
     }
 }
