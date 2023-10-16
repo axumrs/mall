@@ -36,6 +36,7 @@ message ListBannerResponse {
 message TopNBannerRequest {
   int32 num = 1;
   bool order_by_id = 2;
+  optional string title = 3;
 }
 
 // 前N个轮播图响应

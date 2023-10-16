@@ -237,6 +237,8 @@ pub struct TopNBannerRequest {
     pub num: i32,
     #[prost(bool, tag = "2")]
     pub order_by_id: bool,
+    #[prost(string, optional, tag = "3")]
+    pub title: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// 前N个轮播图响应
 #[allow(clippy::derive_partial_eq_without_eq)]
