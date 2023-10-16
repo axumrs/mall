@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package pb;
+
+import "banner_message.proto";
+import "aff_message.proto";
+import "id_message.proto";
+import "paginate_message.proto";
+import "del_or_restore_message.proto";
+
+// 查找轮播图请求
+message FindBannerRequest {
+  string id = 1;
+  optional string title = 2;
+  optional bool is_del = 3;
+}
+
+// 查找轮播图响应
+message FindBannerResponse { optional Banner banner = 1; }
+
+// 轮播图列表请求
+message ListBannerRequest {
+  PaginateRequest paginate = 1;
+  optional string title = 2;
+  optional bool is_del = 3;
+  bool order_by_sort = 4;
+}
+
+// 轮播图列表响应
+message ListBannerResponse {
+  Paginate paginate = 1;
+  repeated Banner banners = 2;
+}
+
+// 前N个轮播图请求
+message TopNBannerRequest {
+  int32 num = 1;
+  bool order_by_id = 2;
+}
+
+// 前N个轮播图响应
+message TopNBannerResponse { repeated Banner banners = 1; }
+
+service BannerService {
+  // 创建轮播图
+  rpc CreateBanner(Banner) returns (ID);
+
+  // 修改轮播图
+  rpc EditBanner(Banner) returns (Aff);
+
+  // 删除/还原轮播图
+  rpc DeleteOrRestoreBanner(DeleteOrRestoreRequest) returns (Aff);
+
+  // 查找轮播图
+  rpc FindBanner(FindBannerRequest) returns (FindBannerResponse);
+
+  // 轮播图列表
+  rpc ListBanner(ListBannerRequest) returns (ListBannerResponse);
+
+  // 前N个轮播图
+  rpc TopNBanner(TopNBannerRequest) returns (TopNBannerResponse);
+}
