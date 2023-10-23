@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package pb;
+
+message GoodsSKU {
+  message MetaItems { repeated string items = 1; }
+  message Meta {
+    repeated string names = 1;
+    repeated MetaItems items = 2;
+  }
+  message DataItem {
+    repeated string items = 1;
+    string items_str = 2;
+    uint32 stock = 3;
+    uint32 price = 4;
+    uint32 origin_price = 5;
+    int32 sort = 6;
+  }
+  Meta meta = 1;
+  map<string, DataItem> data = 2;
+}
+
+message GoodsAttr {
+  string goods_id = 1;
+  GoodsSKU sku = 2;
+  uint64 ver = 3;
+}

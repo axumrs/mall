@@ -1,0 +1,1 @@
+CREATE INDEX idx_goods_attrs_sku ON goods_attrs USING gin(sku);

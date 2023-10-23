@@ -3,6 +3,7 @@ pub mod brand;
 pub mod category;
 pub mod category_brand;
 pub mod goods;
+pub mod goods_attr;
 pub mod paginate;
 pub mod user;
 

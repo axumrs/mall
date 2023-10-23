@@ -4691,3 +4691,57 @@ pub mod user_service_server {
         const NAME: &'static str = "pb.UserService";
     }
 }
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GoodsSku {
+    #[prost(message, optional, tag = "1")]
+    pub meta: ::core::option::Option<goods_sku::Meta>,
+    #[prost(map = "string, message", tag = "2")]
+    pub data: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        goods_sku::DataItem,
+    >,
+}
+/// Nested message and enum types in `GoodsSKU`.
+pub mod goods_sku {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct MetaItems {
+        #[prost(string, repeated, tag = "1")]
+        pub items: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    }
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Meta {
+        #[prost(string, repeated, tag = "1")]
+        pub names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        #[prost(message, repeated, tag = "2")]
+        pub items: ::prost::alloc::vec::Vec<MetaItems>,
+    }
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DataItem {
+        #[prost(string, repeated, tag = "1")]
+        pub items: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        #[prost(string, tag = "2")]
+        pub items_str: ::prost::alloc::string::String,
+        #[prost(uint32, tag = "3")]
+        pub stock: u32,
+        #[prost(uint32, tag = "4")]
+        pub price: u32,
+        #[prost(uint32, tag = "5")]
+        pub origin_price: u32,
+        #[prost(int32, tag = "6")]
+        pub sort: i32,
+    }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GoodsAttr {
+    #[prost(string, tag = "1")]
+    pub goods_id: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub sku: ::core::option::Option<GoodsSku>,
+    #[prost(uint64, tag = "3")]
+    pub ver: u64,
+}

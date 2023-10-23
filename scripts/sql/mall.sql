@@ -72,3 +72,9 @@ CREATE TABLE IF NOT EXISTS "goods" ( -- 商品
 	UNIQUE ("name"),
 	UNIQUE ("sn")
 );
+
+CREATE TABLE IF NOT EXISTS "goods_attrs"( -- 商品属性
+	goods_id CHAR(20) PRIMARY KEY, -- 商品ID
+    sku JSONB NOT NULL DEFAULT '{}', -- 商品SKU
+    ver u64 NOT NULL DEFAULT 0 -- 乐观锁版本
+);
