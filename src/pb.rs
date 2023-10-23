@@ -1003,6 +1003,60 @@ pub struct CategoryWithBrandsTree {
     #[prost(string, tag = "2")]
     pub fullname: ::prost::alloc::string::String,
 }
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GoodsSku {
+    #[prost(message, optional, tag = "1")]
+    pub meta: ::core::option::Option<goods_sku::Meta>,
+    #[prost(map = "string, message", tag = "2")]
+    pub data: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        goods_sku::DataItem,
+    >,
+}
+/// Nested message and enum types in `GoodsSKU`.
+pub mod goods_sku {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct MetaItems {
+        #[prost(string, repeated, tag = "1")]
+        pub items: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    }
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Meta {
+        #[prost(string, repeated, tag = "1")]
+        pub names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        #[prost(message, repeated, tag = "2")]
+        pub items: ::prost::alloc::vec::Vec<MetaItems>,
+    }
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DataItem {
+        #[prost(string, repeated, tag = "1")]
+        pub items: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        #[prost(string, tag = "2")]
+        pub items_str: ::prost::alloc::string::String,
+        #[prost(uint32, tag = "3")]
+        pub stock: u32,
+        #[prost(uint32, tag = "4")]
+        pub price: u32,
+        #[prost(uint32, tag = "5")]
+        pub origin_price: u32,
+        #[prost(int32, tag = "6")]
+        pub sort: i32,
+    }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GoodsAttr {
+    #[prost(string, tag = "1")]
+    pub goods_id: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub sku: ::core::option::Option<GoodsSku>,
+    #[prost(uint64, tag = "3")]
+    pub ver: u64,
+}
 /// 查找品牌请求
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1413,6 +1467,26 @@ pub mod goods_exists_request {
         #[prost(string, tag = "2")]
         Sn(::prost::alloc::string::String),
     }
+}
+/// 查找商品属性响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindGoodsAttrResponse {
+    #[prost(message, optional, tag = "1")]
+    pub goods_attr: ::core::option::Option<GoodsAttr>,
+}
+/// 更新商品库存请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateGoodsStockRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub sku_key: ::prost::alloc::string::String,
+    #[prost(int32, tag = "3")]
+    pub increment: i32,
+    #[prost(uint64, tag = "4")]
+    pub ver: u64,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
@@ -2233,6 +2307,101 @@ pub mod goods_service_client {
                 .insert(GrpcMethod::new("pb.GoodsService", "GoodsExists"));
             self.inner.unary(req, path, codec).await
         }
+        /// 设置商品属性
+        pub async fn set_goods_attr(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GoodsAttr>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/SetGoodsAttr",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "SetGoodsAttr"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 删除商品属性
+        pub async fn remove_goods_attr(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Id>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/RemoveGoodsAttr",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "RemoveGoodsAttr"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 查找商品属性
+        pub async fn find_goods_attr(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Id>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindGoodsAttrResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/FindGoodsAttr",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "FindGoodsAttr"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 更新商品库存
+        pub async fn update_goods_stock(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateGoodsStockRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.GoodsService/UpdateGoodsStock",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.GoodsService", "UpdateGoodsStock"));
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -2430,6 +2599,29 @@ pub mod goods_service_server {
             tonic::Response<super::IsExistsResponse>,
             tonic::Status,
         >;
+        /// 设置商品属性
+        async fn set_goods_attr(
+            &self,
+            request: tonic::Request<super::GoodsAttr>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 删除商品属性
+        async fn remove_goods_attr(
+            &self,
+            request: tonic::Request<super::Id>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 查找商品属性
+        async fn find_goods_attr(
+            &self,
+            request: tonic::Request<super::Id>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindGoodsAttrResponse>,
+            tonic::Status,
+        >;
+        /// 更新商品库存
+        async fn update_goods_stock(
+            &self,
+            request: tonic::Request<super::UpdateGoodsStockRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
     }
     /// 商品服务
     #[derive(Debug)]
@@ -3775,6 +3967,184 @@ pub mod goods_service_server {
                     };
                     Box::pin(fut)
                 }
+                "/pb.GoodsService/SetGoodsAttr" => {
+                    #[allow(non_camel_case_types)]
+                    struct SetGoodsAttrSvc<T: GoodsService>(pub Arc<T>);
+                    impl<T: GoodsService> tonic::server::UnaryService<super::GoodsAttr>
+                    for SetGoodsAttrSvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GoodsAttr>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).set_goods_attr(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = SetGoodsAttrSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/RemoveGoodsAttr" => {
+                    #[allow(non_camel_case_types)]
+                    struct RemoveGoodsAttrSvc<T: GoodsService>(pub Arc<T>);
+                    impl<T: GoodsService> tonic::server::UnaryService<super::Id>
+                    for RemoveGoodsAttrSvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Id>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).remove_goods_attr(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = RemoveGoodsAttrSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/FindGoodsAttr" => {
+                    #[allow(non_camel_case_types)]
+                    struct FindGoodsAttrSvc<T: GoodsService>(pub Arc<T>);
+                    impl<T: GoodsService> tonic::server::UnaryService<super::Id>
+                    for FindGoodsAttrSvc<T> {
+                        type Response = super::FindGoodsAttrResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Id>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).find_goods_attr(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = FindGoodsAttrSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.GoodsService/UpdateGoodsStock" => {
+                    #[allow(non_camel_case_types)]
+                    struct UpdateGoodsStockSvc<T: GoodsService>(pub Arc<T>);
+                    impl<
+                        T: GoodsService,
+                    > tonic::server::UnaryService<super::UpdateGoodsStockRequest>
+                    for UpdateGoodsStockSvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::UpdateGoodsStockRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).update_goods_stock(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = UpdateGoodsStockSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
                 _ => {
                     Box::pin(async move {
                         Ok(
@@ -4690,58 +5060,4 @@ pub mod user_service_server {
     impl<T: UserService> tonic::server::NamedService for UserServiceServer<T> {
         const NAME: &'static str = "pb.UserService";
     }
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GoodsSku {
-    #[prost(message, optional, tag = "1")]
-    pub meta: ::core::option::Option<goods_sku::Meta>,
-    #[prost(map = "string, message", tag = "2")]
-    pub data: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        goods_sku::DataItem,
-    >,
-}
-/// Nested message and enum types in `GoodsSKU`.
-pub mod goods_sku {
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct MetaItems {
-        #[prost(string, repeated, tag = "1")]
-        pub items: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    }
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Meta {
-        #[prost(string, repeated, tag = "1")]
-        pub names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-        #[prost(message, repeated, tag = "2")]
-        pub items: ::prost::alloc::vec::Vec<MetaItems>,
-    }
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct DataItem {
-        #[prost(string, repeated, tag = "1")]
-        pub items: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-        #[prost(string, tag = "2")]
-        pub items_str: ::prost::alloc::string::String,
-        #[prost(uint32, tag = "3")]
-        pub stock: u32,
-        #[prost(uint32, tag = "4")]
-        pub price: u32,
-        #[prost(uint32, tag = "5")]
-        pub origin_price: u32,
-        #[prost(int32, tag = "6")]
-        pub sort: i32,
-    }
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GoodsAttr {
-    #[prost(string, tag = "1")]
-    pub goods_id: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "2")]
-    pub sku: ::core::option::Option<GoodsSku>,
-    #[prost(uint64, tag = "3")]
-    pub ver: u64,
 }

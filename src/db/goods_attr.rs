@@ -18,8 +18,10 @@ pub async fn set<'a>(
 /// 查找商品属性
 pub async fn find<'a>(
     e: impl sqlx::PgExecutor<'a>,
+    goods_id: &str,
 ) -> Result<Option<model::GoodsAttr>, sqlx::Error> {
     let mut q = sqlx::QueryBuilder::new("SELECT goods_id, sku, ver FROM goods_attrs WHERE 1=1");
+    q.push(" AND goods_id=").push_bind(goods_id);
 
     q.build_query_as().fetch_optional(e).await
 }
@@ -27,32 +29,39 @@ pub async fn find<'a>(
 /// 更新库存
 pub async fn update_sock<'a>(
     e: impl sqlx::PgExecutor<'a>,
-    goods_id: &str,
-    sku_key: &str,
-    ver: U64,
-    increment: i32,
+    r: &model::UpdateGoodsStockRequest,
 ) -> Result<u64, sqlx::Error> {
     let mut q = sqlx::QueryBuilder::new("UPDATE goods_attrs SET ");
 
     q.push("sku['data'][")
-        .push_bind(sku_key)
+        .push_bind(&r.sku_key)
         .push("]['stock'] = to_jsonb((sku['data'][")
-        .push_bind(sku_key)
+        .push_bind(&r.sku_key)
         .push("]['stock'])::INTEGER + ")
-        .push_bind(increment)
+        .push_bind(&r.increment)
         .push(")");
 
-    q.push(", ver = ").push_bind(ver + U64::from(1u64));
+    q.push(", ver = ").push_bind(r.ver + U64::from(1u64));
 
     q.push(" WHERE goods_id=")
-        .push_bind(goods_id)
+        .push_bind(&r.goods_id)
         .push(" AND ver=")
-        .push_bind(ver);
+        .push_bind(&r.ver);
 
     println!("{}", q.sql());
 
     let aff = q.build().execute(e).await?.rows_affected();
     Ok(aff)
+}
+
+/// 消除商品属性
+pub async fn remove<'a>(e: impl sqlx::PgExecutor<'a>, goods_id: &str) -> Result<u64, sqlx::Error> {
+    let r = sqlx::query("DELETE FROM goods_attrs WHERE goods_id=$1")
+        .bind(goods_id)
+        .execute(e)
+        .await?
+        .rows_affected();
+    Ok(r)
 }
 
 #[cfg(test)]
@@ -124,7 +133,7 @@ mod test {
     #[tokio::test]
     async fn test_db_find_goods_attr() {
         let conn = get_conn().await;
-        let ga = super::find(&conn).await.unwrap();
+        let ga = super::find(&conn, TEST_GOODS_ID).await.unwrap();
         println!("{:?}", ga);
     }
 
@@ -132,7 +141,7 @@ mod test {
     async fn test_db_update_goods_stock() {
         let conn = get_conn().await;
         let mut tx = conn.begin().await.unwrap();
-        let ga = match super::find(&mut *tx).await {
+        let ga = match super::find(&mut *tx, TEST_GOODS_ID).await {
             Err(err) => {
                 tx.rollback().await.unwrap();
                 panic!("Failed to update {:?}", err);
@@ -140,9 +149,13 @@ mod test {
             Ok(ga) => ga,
         };
         let ga = ga.unwrap();
-
-        let aff = match super::update_sock(&mut *tx, TEST_GOODS_ID, "米色-M-V领", ga.ver, -1).await
-        {
+        let r = model::UpdateGoodsStockRequest {
+            goods_id: TEST_GOODS_ID.to_string(),
+            sku_key: "米色-M-V领".to_string(),
+            ver: ga.ver,
+            increment: -1,
+        };
+        let aff = match super::update_sock(&mut *tx, &r).await {
             Err(err) => {
                 tx.rollback().await.unwrap();
                 panic!("Failed to update {:?}", err);

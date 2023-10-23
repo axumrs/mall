@@ -682,4 +682,86 @@ impl GoodsService for Goods {
         let exists = db::goods::exists(&*self.pool, &r).await.map_err(e2s)?;
         Ok(tonic::Response::new(pb::IsExistsResponse { value: exists }))
     }
+    /// 设置商品属性
+    async fn set_goods_attr(
+        &self,
+        request: tonic::Request<pb::GoodsAttr>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        let ga = model::GoodsAttr::from(request.into_inner());
+        let mut tx = self.pool.begin().await.map_err(e2s)?;
+
+        let rows = match db::goods_attr::set(&mut *tx, &ga).await {
+            Ok(rows) => rows,
+            Err(err) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(err));
+            }
+        };
+
+        tx.commit().await.map_err(e2s)?;
+
+        Ok(tonic::Response::new(pb::Aff { rows }))
+    }
+    /// 删除商品属性
+    async fn remove_goods_attr(
+        &self,
+        request: tonic::Request<pb::Id>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        let rows = db::goods_attr::remove(&*self.pool, &request.into_inner().value)
+            .await
+            .map_err(e2s)?;
+        Ok(tonic::Response::new(pb::Aff { rows }))
+    }
+    /// 查找商品属性
+    async fn find_goods_attr(
+        &self,
+        request: tonic::Request<pb::Id>,
+    ) -> std::result::Result<tonic::Response<pb::FindGoodsAttrResponse>, tonic::Status> {
+        let ga = db::goods_attr::find(&*self.pool, &request.into_inner().value)
+            .await
+            .map_err(e2s)?;
+        let ga = match ga {
+            Some(ga) => Some(ga.into()),
+            None => None,
+        };
+
+        Ok(tonic::Response::new(pb::FindGoodsAttrResponse {
+            goods_attr: ga,
+        }))
+    }
+    /// 更新商品库存
+    async fn update_goods_stock(
+        &self,
+        request: tonic::Request<pb::UpdateGoodsStockRequest>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        let r = model::UpdateGoodsStockRequest::from(request.into_inner());
+        let mut tx = self.pool.begin().await.map_err(e2s)?;
+
+        let ga = match db::goods_attr::find(&mut *tx, &r.goods_id).await {
+            Ok(ga) => ga,
+            Err(err) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(err));
+            }
+        };
+        if ga.is_none() {
+            tx.rollback().await.map_err(e2s)?;
+            return Err(tonic::Status::not_found("不存在的记录"));
+        }
+
+        let ga = ga.unwrap();
+        let r = model::UpdateGoodsStockRequest { ver: ga.ver, ..r };
+
+        let rows = match db::goods_attr::update_sock(&mut *tx, &r).await {
+            Ok(rows) => rows,
+            Err(err) => {
+                tx.rollback().await.map_err(e2s)?;
+                return Err(e2s(err));
+            }
+        };
+
+        tx.commit().await.map_err(e2s)?;
+
+        Ok(tonic::Response::new(pb::Aff { rows }))
+    }
 }

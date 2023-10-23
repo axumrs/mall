@@ -198,3 +198,34 @@ mod test {
         println!("WITH KEY TABLE: {:?}", table);
     }
 }
+
+// -- 更新库存请求 --
+
+pub struct UpdateGoodsStockRequest {
+    pub goods_id: String,
+    pub sku_key: String,
+    pub ver: U64,
+    pub increment: i32,
+}
+
+impl From<pb::UpdateGoodsStockRequest> for UpdateGoodsStockRequest {
+    fn from(r: pb::UpdateGoodsStockRequest) -> Self {
+        Self {
+            goods_id: r.id,
+            sku_key: r.sku_key,
+            ver: U64::from(r.ver),
+            increment: r.increment,
+        }
+    }
+}
+
+impl Into<pb::UpdateGoodsStockRequest> for UpdateGoodsStockRequest {
+    fn into(self) -> pb::UpdateGoodsStockRequest {
+        pb::UpdateGoodsStockRequest {
+            id: self.goods_id,
+            sku_key: self.sku_key,
+            increment: self.increment,
+            ver: self.ver.unsigned(),
+        }
+    }
+}

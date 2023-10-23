@@ -35,7 +35,6 @@ etcd-rs = "1.0"
 serde_json = { version = "1.0", features = ["raw_value"] }
 xid = "1"
 utf8_slice = "1"
-itertools = "0.11"
 
 
 [build-dependencies]

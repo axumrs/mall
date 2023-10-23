@@ -6,6 +6,7 @@ import "brand_message.proto";
 import "category_message.proto";
 import "category_brand_message.proto";
 import "goods_message.proto";
+import "goods_attr_message.proto";
 import "aff_message.proto";
 import "id_message.proto";
 import "daterange_message.proto";
@@ -260,6 +261,17 @@ message GoodsExistsRequest {
   optional string id = 3;
 }
 
+// 查找商品属性响应
+message FindGoodsAttrResponse { optional GoodsAttr goods_attr = 1; }
+
+// 更新商品库存请求
+message UpdateGoodsStockRequest {
+  string id = 1;
+  string sku_key = 2;
+  int32 increment = 3;
+  uint64 ver = 4;
+}
+
 // 商品服务
 service GoodsService {
   // 创建品牌
@@ -329,4 +341,13 @@ service GoodsService {
   rpc ListGoods(ListGoodsRequest) returns (ListGoodsResponse);
   // 商品是否存在
   rpc GoodsExists(GoodsExistsRequest) returns (IsExistsResponse);
+
+  // 设置商品属性
+  rpc SetGoodsAttr(GoodsAttr) returns (Aff);
+  // 删除商品属性
+  rpc RemoveGoodsAttr(ID) returns (Aff);
+  // 查找商品属性
+  rpc FindGoodsAttr(ID) returns (FindGoodsAttrResponse);
+  // 更新商品库存
+  rpc UpdateGoodsStock(UpdateGoodsStockRequest) returns (Aff);
 }
