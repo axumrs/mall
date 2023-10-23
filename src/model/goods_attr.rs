@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::utils::Cartesian;
+use crate::{pb, utils::Cartesian};
 
 use super::{U32, U64};
 
@@ -13,10 +13,12 @@ pub struct GoodsSKUMeta {
 }
 
 impl GoodsSKUMeta {
+    /// 生成SKU项的列表
     pub fn table(&self) -> Vec<Vec<String>> {
         let c = Cartesian::new(&self.items);
         c.product()
     }
+    /// 生成带KEY的SKU项的列表
     pub fn items_with_key(&self) -> Vec<(String, Vec<String>)> {
         let t = self.table();
         t.iter()
@@ -27,10 +29,35 @@ impl GoodsSKUMeta {
             })
             .collect()
     }
+    /// 生成SKU项的KEY
     pub fn key(item: &Vec<String>) -> String {
         item.join("-")
     }
 }
+
+impl From<pb::goods_sku::Meta> for GoodsSKUMeta {
+    fn from(m: pb::goods_sku::Meta) -> Self {
+        let items = m.items.iter().map(|i| i.items.clone()).collect();
+        Self {
+            names: m.names,
+            items,
+        }
+    }
+}
+
+impl Into<pb::goods_sku::Meta> for GoodsSKUMeta {
+    fn into(self) -> pb::goods_sku::Meta {
+        pb::goods_sku::Meta {
+            names: self.names,
+            items: self
+                .items
+                .iter()
+                .map(|i| pb::goods_sku::MetaItems { items: i.clone() })
+                .collect(),
+        }
+    }
+}
+
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GoodsSKUData {
     pub items: Vec<String>,
@@ -41,10 +68,62 @@ pub struct GoodsSKUData {
     pub sort: i32,
 }
 
+impl From<pb::goods_sku::DataItem> for GoodsSKUData {
+    fn from(d: pb::goods_sku::DataItem) -> Self {
+        Self {
+            items: d.items,
+            items_str: d.items_str,
+            stock: U32::from(d.stock),
+            price: U32::from(d.price),
+            origin_price: U32::from(d.origin_price),
+            sort: d.sort,
+        }
+    }
+}
+
+impl Into<pb::goods_sku::DataItem> for GoodsSKUData {
+    fn into(self) -> pb::goods_sku::DataItem {
+        pb::goods_sku::DataItem {
+            items: self.items,
+            items_str: self.items_str,
+            stock: self.stock.unsigned(),
+            price: self.price.unsigned(),
+            origin_price: self.origin_price.unsigned(),
+            sort: self.sort,
+        }
+    }
+}
+
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GoodsSKU {
     pub meta: GoodsSKUMeta,
     pub data: HashMap<String, GoodsSKUData>,
+}
+
+impl From<pb::GoodsSku> for GoodsSKU {
+    fn from(s: pb::GoodsSku) -> Self {
+        let mut data: HashMap<String, GoodsSKUData> = HashMap::with_capacity(s.data.len());
+        for (k, v) in s.data {
+            data.insert(k, v.into());
+        }
+        Self {
+            meta: s.meta.unwrap().into(),
+            data,
+        }
+    }
+}
+
+impl Into<pb::GoodsSku> for GoodsSKU {
+    fn into(self) -> pb::GoodsSku {
+        let mut data = HashMap::with_capacity(self.data.len());
+        for (k, v) in self.data {
+            data.insert(k, v.into());
+        }
+        pb::GoodsSku {
+            meta: Some(self.meta.into()),
+            data,
+        }
+    }
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
@@ -52,6 +131,28 @@ pub struct GoodsAttr {
     pub goods_id: String,
     pub sku: sqlx::types::Json<GoodsSKU>,
     pub ver: U64,
+}
+
+impl From<pb::GoodsAttr> for GoodsAttr {
+    fn from(ga: pb::GoodsAttr) -> Self {
+        let sku: GoodsSKU = ga.sku.unwrap().into();
+        Self {
+            goods_id: ga.goods_id,
+            sku: sqlx::types::Json::from(sku),
+            ver: U64::from(ga.ver),
+        }
+    }
+}
+
+impl Into<pb::GoodsAttr> for GoodsAttr {
+    fn into(self) -> pb::GoodsAttr {
+        let sku: pb::GoodsSku = self.sku.0.into();
+        pb::GoodsAttr {
+            goods_id: self.goods_id,
+            sku: Some(sku),
+            ver: self.ver.unsigned(),
+        }
+    }
 }
 
 #[cfg(test)]
