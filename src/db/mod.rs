@@ -1,5 +1,6 @@
 pub mod banner;
 pub mod brand;
+pub mod cart;
 pub mod category;
 pub mod category_brand;
 pub mod goods;

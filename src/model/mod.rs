@@ -1,5 +1,6 @@
 mod banner;
 mod brand;
+mod cart;
 mod category;
 mod category_brand;
 mod datetime_range;
@@ -11,6 +12,7 @@ mod user;
 
 pub use banner::*;
 pub use brand::*;
+pub use cart::*;
 pub use category::*;
 pub use category_brand::*;
 pub use datetime_range::*;

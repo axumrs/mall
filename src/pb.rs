@@ -101,6 +101,9 @@ pub struct Cart {
     /// 加入购物车时间
     #[prost(message, optional, tag = "7")]
     pub dateline: ::core::option::Option<::prost_types::Timestamp>,
+    /// hash
+    #[prost(string, tag = "8")]
+    pub hash: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

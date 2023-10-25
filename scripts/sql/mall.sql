@@ -85,5 +85,8 @@ CREATE TABLE IF NOT EXISTS "carts" ( -- 购物车
 	"goods_id" CHAR(20) NOT NULL, -- 商品ID
 	"goods_sku" VARCHAR(255) NOT NULL, -- SKU
 	"num" u32 NOT NULL, -- 购买数量
-	"dateline" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP -- 加入购物车时间
+	"amount" u32 NOT NULL, -- 金额
+	"hash" CHAR(32) NOT NULL, -- hash
+	"dateline" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 加入购物车时间
+	UNIQUE("hash")
 );

@@ -19,4 +19,6 @@ message Cart {
   uint32 amount = 6;
   // 加入购物车时间
   google.protobuf.Timestamp dateline = 7;
+  // hash
+  string hash = 8;
 }

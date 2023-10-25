@@ -7,6 +7,7 @@ pub enum Kind {
     NotFound,
     IncorrectAuth,
     InvalidArgument,
+    Base16ct,
 }
 
 #[derive(Debug)]
@@ -79,5 +80,11 @@ impl From<serde_json::Error> for Error {
 impl From<bcrypt::BcryptError> for Error {
     fn from(e: bcrypt::BcryptError) -> Self {
         Self::with_cause(Kind::Bcrypt, Box::new(e))
+    }
+}
+
+impl From<base16ct::Error> for Error {
+    fn from(e: base16ct::Error) -> Self {
+        Self::from_string(Kind::Base16ct, e.to_string())
     }
 }
