@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package pb;
+
+import "cart_message.proto";
+import "aff_message.proto";
+import "id_message.proto";
+
+// 购物车详情响应
+message CartDetailResponse {
+  // 购物车
+  repeated Cart cart = 1;
+}
+
+// 添加到购物车响应
+message AddItemToCartResponse {
+  // 购物车详情
+  CartDetailResponse detail = 1;
+  // 新增的ID
+  ID id = 2;
+}
+
+// 获取购物车
+message GetCartRequest {
+  // 用户ID
+  string user_id = 1;
+}
+
+// 清空购物车请求
+message ClearCartRequest {
+  // 用户ID
+  string user_id = 1;
+}
+
+// 从购物车删除请求
+message RemoveItemFromCartRequest {
+  // 用户ID
+  string user_id = 1;
+  // 要删除购物车项的ID列表
+  repeated string ids = 2;
+}
+
+// 从购物车删除响应
+message RemoveItemFromCartResponse {
+  // 购物车详情
+  CartDetailResponse detail = 1;
+  // 已删除的项
+  CartDetailResponse removed = 2;
+}
+
+// 购物车数量
+message CartItemNum {
+  string id = 1;
+  uint32 num = 2;
+}
+
+// 更新购物车某项的数量请求
+message UpdateCartItemNumRequest {
+  // 购物车数量
+  repeated CartItemNum items = 1;
+}
+
+// 更新购物车某项的数量响应
+message UpdateCartItemNumResponse {
+  // 购物车详情
+  CartDetailResponse detail = 1;
+  // 收影响的行数
+  repeated Aff affs = 2;
+}
+
+// 购物车服务
+service CartService {
+  // 添加到购物车
+  rpc AddItemToCart(Cart) returns (AddItemToCartResponse);
+  // 获取购物车
+  rpc GetCart(GetCartRequest) returns (CartDetailResponse);
+  // 清空购物车
+  rpc ClearCart(ClearCartRequest) returns (Aff);
+  // 从购物车删除
+  rpc RemoveItemFromCart(RemoveItemFromCartRequest)
+      returns (RemoveItemFromCartResponse);
+  // 更新购物车某项的数量
+  rpc UpdateCartItemNum(UpdateCartItemNumRequest)
+      returns (UpdateCartItemNumResponse);
+}

@@ -77,6 +77,727 @@ pub struct DeleteOrRestoreRequest {
     #[prost(bool, tag = "2")]
     pub is_del: bool,
 }
+/// 购物车
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Cart {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// 用户ID
+    #[prost(string, tag = "2")]
+    pub user_id: ::prost::alloc::string::String,
+    /// 商品ID
+    #[prost(string, tag = "3")]
+    pub goods_id: ::prost::alloc::string::String,
+    /// 商品SKU
+    #[prost(string, tag = "4")]
+    pub goods_sku: ::prost::alloc::string::String,
+    /// 购买数量
+    #[prost(uint32, tag = "5")]
+    pub num: u32,
+    /// 金额
+    #[prost(uint32, tag = "6")]
+    pub amount: u32,
+    /// 加入购物车时间
+    #[prost(message, optional, tag = "7")]
+    pub dateline: ::core::option::Option<::prost_types::Timestamp>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Aff {
+    #[prost(uint64, tag = "1")]
+    pub rows: u64,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Id {
+    #[prost(string, tag = "1")]
+    pub value: ::prost::alloc::string::String,
+}
+/// 购物车详情响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CartDetailResponse {
+    /// 购物车
+    #[prost(message, repeated, tag = "1")]
+    pub cart: ::prost::alloc::vec::Vec<Cart>,
+}
+/// 添加到购物车响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AddItemToCartResponse {
+    /// 购物车详情
+    #[prost(message, optional, tag = "1")]
+    pub detail: ::core::option::Option<CartDetailResponse>,
+    /// 新增的ID
+    #[prost(message, optional, tag = "2")]
+    pub id: ::core::option::Option<Id>,
+}
+/// 获取购物车
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetCartRequest {
+    /// 用户ID
+    #[prost(string, tag = "1")]
+    pub user_id: ::prost::alloc::string::String,
+}
+/// 清空购物车请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ClearCartRequest {
+    /// 用户ID
+    #[prost(string, tag = "1")]
+    pub user_id: ::prost::alloc::string::String,
+}
+/// 从购物车删除请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RemoveItemFromCartRequest {
+    /// 用户ID
+    #[prost(string, tag = "1")]
+    pub user_id: ::prost::alloc::string::String,
+    /// 要删除购物车项的ID列表
+    #[prost(string, repeated, tag = "2")]
+    pub ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// 从购物车删除响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RemoveItemFromCartResponse {
+    /// 购物车详情
+    #[prost(message, optional, tag = "1")]
+    pub detail: ::core::option::Option<CartDetailResponse>,
+    /// 已删除的项
+    #[prost(message, optional, tag = "2")]
+    pub removed: ::core::option::Option<CartDetailResponse>,
+}
+/// 购物车数量
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CartItemNum {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub num: u32,
+}
+/// 更新购物车某项的数量请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateCartItemNumRequest {
+    /// 购物车数量
+    #[prost(message, repeated, tag = "1")]
+    pub items: ::prost::alloc::vec::Vec<CartItemNum>,
+}
+/// 更新购物车某项的数量响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateCartItemNumResponse {
+    /// 购物车详情
+    #[prost(message, optional, tag = "1")]
+    pub detail: ::core::option::Option<CartDetailResponse>,
+    /// 收影响的行数
+    #[prost(message, repeated, tag = "2")]
+    pub affs: ::prost::alloc::vec::Vec<Aff>,
+}
+/// Generated client implementations.
+pub mod cart_service_client {
+    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// 购物车服务
+    #[derive(Debug, Clone)]
+    pub struct CartServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl CartServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> CartServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> CartServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + Send + Sync,
+        {
+            CartServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// 添加到购物车
+        pub async fn add_item_to_cart(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Cart>,
+        ) -> std::result::Result<
+            tonic::Response<super::AddItemToCartResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.CartService/AddItemToCart",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.CartService", "AddItemToCart"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 获取购物车
+        pub async fn get_cart(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetCartRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::CartDetailResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/pb.CartService/GetCart");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("pb.CartService", "GetCart"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 清空购物车
+        pub async fn clear_cart(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ClearCartRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/pb.CartService/ClearCart");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("pb.CartService", "ClearCart"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 从购物车删除
+        pub async fn remove_item_from_cart(
+            &mut self,
+            request: impl tonic::IntoRequest<super::RemoveItemFromCartRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RemoveItemFromCartResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.CartService/RemoveItemFromCart",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.CartService", "RemoveItemFromCart"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 更新购物车某项的数量
+        pub async fn update_cart_item_num(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateCartItemNumRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UpdateCartItemNumResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.CartService/UpdateCartItemNum",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.CartService", "UpdateCartItemNum"));
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Generated server implementations.
+pub mod cart_service_server {
+    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    use tonic::codegen::*;
+    /// Generated trait containing gRPC methods that should be implemented for use with CartServiceServer.
+    #[async_trait]
+    pub trait CartService: Send + Sync + 'static {
+        /// 添加到购物车
+        async fn add_item_to_cart(
+            &self,
+            request: tonic::Request<super::Cart>,
+        ) -> std::result::Result<
+            tonic::Response<super::AddItemToCartResponse>,
+            tonic::Status,
+        >;
+        /// 获取购物车
+        async fn get_cart(
+            &self,
+            request: tonic::Request<super::GetCartRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::CartDetailResponse>,
+            tonic::Status,
+        >;
+        /// 清空购物车
+        async fn clear_cart(
+            &self,
+            request: tonic::Request<super::ClearCartRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 从购物车删除
+        async fn remove_item_from_cart(
+            &self,
+            request: tonic::Request<super::RemoveItemFromCartRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RemoveItemFromCartResponse>,
+            tonic::Status,
+        >;
+        /// 更新购物车某项的数量
+        async fn update_cart_item_num(
+            &self,
+            request: tonic::Request<super::UpdateCartItemNumRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UpdateCartItemNumResponse>,
+            tonic::Status,
+        >;
+    }
+    /// 购物车服务
+    #[derive(Debug)]
+    pub struct CartServiceServer<T: CartService> {
+        inner: _Inner<T>,
+        accept_compression_encodings: EnabledCompressionEncodings,
+        send_compression_encodings: EnabledCompressionEncodings,
+        max_decoding_message_size: Option<usize>,
+        max_encoding_message_size: Option<usize>,
+    }
+    struct _Inner<T>(Arc<T>);
+    impl<T: CartService> CartServiceServer<T> {
+        pub fn new(inner: T) -> Self {
+            Self::from_arc(Arc::new(inner))
+        }
+        pub fn from_arc(inner: Arc<T>) -> Self {
+            let inner = _Inner(inner);
+            Self {
+                inner,
+                accept_compression_encodings: Default::default(),
+                send_compression_encodings: Default::default(),
+                max_decoding_message_size: None,
+                max_encoding_message_size: None,
+            }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> InterceptedService<Self, F>
+        where
+            F: tonic::service::Interceptor,
+        {
+            InterceptedService::new(Self::new(inner), interceptor)
+        }
+        /// Enable decompressing requests with the given encoding.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.accept_compression_encodings.enable(encoding);
+            self
+        }
+        /// Compress responses with the given encoding, if the client supports it.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.send_compression_encodings.enable(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.max_decoding_message_size = Some(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.max_encoding_message_size = Some(limit);
+            self
+        }
+    }
+    impl<T, B> tonic::codegen::Service<http::Request<B>> for CartServiceServer<T>
+    where
+        T: CartService,
+        B: Body + Send + 'static,
+        B::Error: Into<StdError> + Send + 'static,
+    {
+        type Response = http::Response<tonic::body::BoxBody>;
+        type Error = std::convert::Infallible;
+        type Future = BoxFuture<Self::Response, Self::Error>;
+        fn poll_ready(
+            &mut self,
+            _cx: &mut Context<'_>,
+        ) -> Poll<std::result::Result<(), Self::Error>> {
+            Poll::Ready(Ok(()))
+        }
+        fn call(&mut self, req: http::Request<B>) -> Self::Future {
+            let inner = self.inner.clone();
+            match req.uri().path() {
+                "/pb.CartService/AddItemToCart" => {
+                    #[allow(non_camel_case_types)]
+                    struct AddItemToCartSvc<T: CartService>(pub Arc<T>);
+                    impl<T: CartService> tonic::server::UnaryService<super::Cart>
+                    for AddItemToCartSvc<T> {
+                        type Response = super::AddItemToCartResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Cart>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).add_item_to_cart(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = AddItemToCartSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.CartService/GetCart" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetCartSvc<T: CartService>(pub Arc<T>);
+                    impl<
+                        T: CartService,
+                    > tonic::server::UnaryService<super::GetCartRequest>
+                    for GetCartSvc<T> {
+                        type Response = super::CartDetailResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetCartRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move { (*inner).get_cart(request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetCartSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.CartService/ClearCart" => {
+                    #[allow(non_camel_case_types)]
+                    struct ClearCartSvc<T: CartService>(pub Arc<T>);
+                    impl<
+                        T: CartService,
+                    > tonic::server::UnaryService<super::ClearCartRequest>
+                    for ClearCartSvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ClearCartRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move { (*inner).clear_cart(request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ClearCartSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.CartService/RemoveItemFromCart" => {
+                    #[allow(non_camel_case_types)]
+                    struct RemoveItemFromCartSvc<T: CartService>(pub Arc<T>);
+                    impl<
+                        T: CartService,
+                    > tonic::server::UnaryService<super::RemoveItemFromCartRequest>
+                    for RemoveItemFromCartSvc<T> {
+                        type Response = super::RemoveItemFromCartResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::RemoveItemFromCartRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).remove_item_from_cart(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = RemoveItemFromCartSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.CartService/UpdateCartItemNum" => {
+                    #[allow(non_camel_case_types)]
+                    struct UpdateCartItemNumSvc<T: CartService>(pub Arc<T>);
+                    impl<
+                        T: CartService,
+                    > tonic::server::UnaryService<super::UpdateCartItemNumRequest>
+                    for UpdateCartItemNumSvc<T> {
+                        type Response = super::UpdateCartItemNumResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::UpdateCartItemNumRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).update_cart_item_num(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = UpdateCartItemNumSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                _ => {
+                    Box::pin(async move {
+                        Ok(
+                            http::Response::builder()
+                                .status(200)
+                                .header("grpc-status", "12")
+                                .header("content-type", "application/grpc")
+                                .body(empty_body())
+                                .unwrap(),
+                        )
+                    })
+                }
+            }
+        }
+    }
+    impl<T: CartService> Clone for CartServiceServer<T> {
+        fn clone(&self) -> Self {
+            let inner = self.inner.clone();
+            Self {
+                inner,
+                accept_compression_encodings: self.accept_compression_encodings,
+                send_compression_encodings: self.send_compression_encodings,
+                max_decoding_message_size: self.max_decoding_message_size,
+                max_encoding_message_size: self.max_encoding_message_size,
+            }
+        }
+    }
+    impl<T: CartService> Clone for _Inner<T> {
+        fn clone(&self) -> Self {
+            Self(Arc::clone(&self.0))
+        }
+    }
+    impl<T: std::fmt::Debug> std::fmt::Debug for _Inner<T> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{:?}", self.0)
+        }
+    }
+    impl<T: CartService> tonic::server::NamedService for CartServiceServer<T> {
+        const NAME: &'static str = "pb.CartService";
+    }
+}
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Goods {
@@ -118,12 +839,6 @@ pub struct Goods {
     pub dateline: ::core::option::Option<::prost_types::Timestamp>,
     #[prost(bool, tag = "19")]
     pub is_del: bool,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Aff {
-    #[prost(uint64, tag = "1")]
-    pub rows: u64,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -219,12 +934,6 @@ impl CategoryLevel {
             _ => None,
         }
     }
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Id {
-    #[prost(string, tag = "1")]
-    pub value: ::prost::alloc::string::String,
 }
 /// 分页
 #[allow(clippy::derive_partial_eq_without_eq)]
