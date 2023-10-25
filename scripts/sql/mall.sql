@@ -90,3 +90,18 @@ CREATE TABLE IF NOT EXISTS "carts" ( -- 购物车
 	"dateline" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 加入购物车时间
 	UNIQUE("hash")
 );
+
+CREATE TABLE IF NOT EXISTS "address" ( -- 收货地址
+	"id" CHAR(20) PRIMARY KEY,
+	"user_id" CHAR(20) NOT NULL, -- 用户ID
+	"is_default" BOOLEAN NOT NULL DEFAULT FALSE, -- 是否默认地址
+	"consignee" VARCHAR(20) NOT NULL, -- 收货人
+	"phone" VARCHAR(20) NOT NULL, -- 电话
+	"address" VARCHAR(255) NOT NULL, -- 地址
+	"province" VARCHAR(10) NOT NULL, -- 省份
+	"city" VARCHAR(100) NOT NULL DEFAULT '', -- 城市
+	"county" VARCHAR(100) NOT NULL DEFAULT '', -- 县
+	"post_code" CHAR(6) NOT NULL DEFAULT '', -- 邮编
+	"is_del" BOOLEAN NOT NULL DEFAULT FALSE, -- 是否删除
+	"dateline" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP -- 添加时间
+);

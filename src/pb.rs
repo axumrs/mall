@@ -4901,6 +4901,54 @@ pub mod goods_service_server {
         const NAME: &'static str = "pb.GoodsService";
     }
 }
+/// 地址详情
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AddressDetail {
+    /// 收件人
+    #[prost(string, tag = "1")]
+    pub consignee: ::prost::alloc::string::String,
+    /// 电话
+    #[prost(string, tag = "2")]
+    pub phone: ::prost::alloc::string::String,
+    /// 详细地址
+    #[prost(string, tag = "3")]
+    pub address: ::prost::alloc::string::String,
+    /// 省市区【省级】
+    #[prost(string, tag = "4")]
+    pub province: ::prost::alloc::string::String,
+    /// 城市【地级】
+    #[prost(string, tag = "5")]
+    pub city: ::prost::alloc::string::String,
+    /// 县市区【县级】
+    #[prost(string, tag = "6")]
+    pub county: ::prost::alloc::string::String,
+    /// 邮编
+    #[prost(string, tag = "7")]
+    pub post_code: ::prost::alloc::string::String,
+}
+/// 地址
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Address {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// 用户ID
+    #[prost(string, tag = "2")]
+    pub user_id: ::prost::alloc::string::String,
+    /// 是否默认地址
+    #[prost(bool, tag = "3")]
+    pub is_default: bool,
+    /// 是否删除
+    #[prost(bool, tag = "4")]
+    pub is_del: bool,
+    /// 添加时间
+    #[prost(message, optional, tag = "5")]
+    pub dateline: ::core::option::Option<::prost_types::Timestamp>,
+    /// 地址详情
+    #[prost(message, optional, tag = "6")]
+    pub detail: ::core::option::Option<AddressDetail>,
+}
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UserExistsRequest {

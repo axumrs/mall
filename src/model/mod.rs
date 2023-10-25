@@ -1,3 +1,4 @@
+mod address;
 mod banner;
 mod brand;
 mod cart;
@@ -10,6 +11,7 @@ mod unsigned;
 mod unsigned_range;
 mod user;
 
+pub use address::*;
 pub use banner::*;
 pub use brand::*;
 pub use cart::*;

@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/timestamp.proto";
+
+// 地址详情
+message AddressDetail {
+  // 收件人
+  string consignee = 1;
+  // 电话
+  string phone = 2;
+  // 详细地址
+  string address = 3;
+  // 省市区【省级】
+  string province = 4;
+  // 城市【地级】
+  string city = 5;
+  // 县市区【县级】
+  string county = 6;
+  // 邮编
+  string post_code = 7;
+}
+
+// 地址
+message Address {
+  string id = 1;
+  // 用户ID
+  string user_id = 2;
+  // 是否默认地址
+  bool is_default = 3;
+  // 是否删除
+  bool is_del = 4;
+  // 添加时间
+  google.protobuf.Timestamp dateline = 5;
+  // 地址详情
+  AddressDetail detail = 6;
+}
