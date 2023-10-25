@@ -59,7 +59,7 @@ pub async fn remove_item<'a>(
         b.push_bind(id);
     });
 
-    println!("sql: {}", q.sql());
+    q.push(" RETURNING *");
 
     q.build_query_as().fetch_all(e).await
 }
