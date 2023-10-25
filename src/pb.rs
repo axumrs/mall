@@ -190,6 +190,9 @@ pub struct UpdateCartItemNumRequest {
     /// 购物车数量
     #[prost(message, repeated, tag = "1")]
     pub items: ::prost::alloc::vec::Vec<CartItemNum>,
+    /// 用户ID
+    #[prost(string, tag = "2")]
+    pub user_id: ::prost::alloc::string::String,
 }
 /// 更新购物车某项的数量响应
 #[allow(clippy::derive_partial_eq_without_eq)]

@@ -68,10 +68,12 @@ pub async fn remove_item<'a>(
 pub async fn update_num<'a>(
     e: impl sqlx::PgExecutor<'a>,
     item: &'a model::CartItemNum,
+    user_id: &'a str,
 ) -> Result<u64, sqlx::Error> {
-    let aff = sqlx::query("UPDATE carts SET num=$1 WHERE id=$2")
+    let aff = sqlx::query("UPDATE carts SET num=$1 WHERE id=$2 AND user_id=$3")
         .bind(&item.num)
         .bind(&item.id)
+        .bind(user_id)
         .execute(e)
         .await?
         .rows_affected();
@@ -153,7 +155,7 @@ mod test {
 
         let mut affs = Vec::with_capacity(items.len());
         for i in items.iter() {
-            let aff = match super::update_num(&mut *tx, i).await {
+            let aff = match super::update_num(&mut *tx, i, "cj7kfuel6bcqn8bicrng").await {
                 Ok(aff) => aff,
                 Err(err) => {
                     tx.rollback().await.unwrap();

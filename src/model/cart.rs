@@ -25,6 +25,22 @@ impl Cart {
         let data = format!("{}-{}-{}", &self.user_id, &self.goods_id, &self.goods_sku);
         utils::hash::md5(&data).unwrap_or(format!("{}-{}", id, &data)[..32].to_string())
     }
+
+    pub fn into_pb_vec(cs: Vec<Self>) -> Vec<pb::Cart> {
+        let mut v = Vec::with_capacity(cs.len());
+        for c in cs {
+            v.push(c.into());
+        }
+        v
+    }
+
+    pub fn from_pb_vc(cs: Vec<pb::Cart>) -> Vec<Self> {
+        let mut v = Vec::with_capacity(cs.len());
+        for c in cs {
+            v.push(Self::from(c));
+        }
+        v
+    }
 }
 
 impl From<pb::Cart> for Cart {

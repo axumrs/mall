@@ -1,4 +1,5 @@
 pub mod banner_srv;
+pub mod cart_srv;
 pub mod goods_srv;
 pub mod user_srv;
 
