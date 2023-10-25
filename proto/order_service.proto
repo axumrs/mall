@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package pb;
+
+// 查找地址请求
+message FindAddressRequest {
+  oneof by {
+    // 通过ID查找
+    string id = 1;
+    // 查找默认地址
+    bool is_default = 2;
+  }
+  // 用户ID。如果是用户进行操作，必须指定该参数
+  optional string user_id = 3;
+  optional bool is_del = 4;
+}
+
+// 查找地址响应
+message FindAddressResponse { optional Address address = 1; }
+
+// 地址列表请求
+message ListAddressRequest {
+  PaginateRequest paginate = 1;
+  // 用户ID。如果是用户进行操作，必须指定该参数
+  optional string user_id = 2;
+  optional string consignee = 3;
+  optional string phone = 4;
+  // 详细地址
+  optional string address = 5;
+}
+
+// 地址列表响应
+message ListAddressResponse {
+  Paginate paginate = 1;
+  repeated Address address_list = 2;
+}
+
+service OrderService {
+  // 添加地址
+  rpc CreateAddress(Address) returns (ID);
+  // 修改地址
+  rpc EditAddress(Address) returns (Aff);
+  // 删除/还原地址
+  rpc DeleteOrRestoreAddress(Address) returns (Aff);
+  // 查找地址
+  rpc FindAddress(FindAddressRequest) returns (FindAddressResponse);
+  // 地址列表
+  rpc ListAddress(ListAddressRequest) returns (ListAddressResponse);
+  // 设置默认地址
+  rpc SetDefaultAddress(Address) returns (Aff);
+}
