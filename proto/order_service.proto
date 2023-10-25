@@ -2,6 +2,12 @@ syntax = "proto3";
 
 package pb;
 
+import "address_message.proto";
+import "aff_message.proto";
+import "id_message.proto";
+import "paginate_message.proto";
+import "del_or_restore_message.proto";
+
 // 查找地址请求
 message FindAddressRequest {
   oneof by {
@@ -35,13 +41,20 @@ message ListAddressResponse {
   repeated Address address_list = 2;
 }
 
+// 删除/还原地址请求
+message DeleteOrRestoreAddressRequest {
+  DeleteOrRestoreRequest dos = 1;
+  // 用户ID。如果是用户进行操作，必须指定该参数
+  optional string user_id = 2;
+}
+
 service OrderService {
   // 添加地址
   rpc CreateAddress(Address) returns (ID);
   // 修改地址
   rpc EditAddress(Address) returns (Aff);
   // 删除/还原地址
-  rpc DeleteOrRestoreAddress(Address) returns (Aff);
+  rpc DeleteOrRestoreAddress(DeleteOrRestoreAddressRequest) returns (Aff);
   // 查找地址
   rpc FindAddress(FindAddressRequest) returns (FindAddressResponse);
   // 地址列表
