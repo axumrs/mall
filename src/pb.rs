@@ -61,6 +61,78 @@ impl UserStatus {
         }
     }
 }
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GoodsSku {
+    #[prost(message, optional, tag = "1")]
+    pub meta: ::core::option::Option<goods_sku::Meta>,
+    #[prost(map = "string, message", tag = "2")]
+    pub data: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        goods_sku::DataItem,
+    >,
+}
+/// Nested message and enum types in `GoodsSKU`.
+pub mod goods_sku {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct MetaItems {
+        #[prost(string, repeated, tag = "1")]
+        pub items: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    }
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Meta {
+        #[prost(string, repeated, tag = "1")]
+        pub names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        #[prost(message, repeated, tag = "2")]
+        pub items: ::prost::alloc::vec::Vec<MetaItems>,
+    }
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DataItem {
+        #[prost(string, repeated, tag = "1")]
+        pub items: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+        #[prost(string, tag = "2")]
+        pub items_str: ::prost::alloc::string::String,
+        #[prost(uint32, tag = "3")]
+        pub stock: u32,
+        #[prost(uint32, tag = "4")]
+        pub price: u32,
+        #[prost(uint32, tag = "5")]
+        pub origin_price: u32,
+        #[prost(int32, tag = "6")]
+        pub sort: i32,
+    }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GoodsAttr {
+    #[prost(string, tag = "1")]
+    pub goods_id: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub sku: ::core::option::Option<GoodsSku>,
+    #[prost(uint64, tag = "3")]
+    pub ver: u64,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OrderGoods {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub order_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub goods_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub goods_sku: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "5")]
+    pub goods_snapshot: ::core::option::Option<goods_sku::DataItem>,
+    #[prost(uint32, tag = "6")]
+    pub num: u32,
+    #[prost(uint32, tag = "7")]
+    pub price: u32,
+}
 /// 地址详情
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1646,6 +1718,29 @@ pub mod order_service_client {
             req.extensions_mut().insert(GrpcMethod::new("pb.OrderService", "ListOrder"));
             self.inner.unary(req, path, codec).await
         }
+        /// 创建订单商品
+        pub async fn create_order_goods(
+            &mut self,
+            request: impl tonic::IntoRequest<super::OrderGoods>,
+        ) -> std::result::Result<tonic::Response<super::Id>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.OrderService/CreateOrderGoods",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.OrderService", "CreateOrderGoods"));
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -1740,6 +1835,11 @@ pub mod order_service_server {
             tonic::Response<super::ListOrderResponse>,
             tonic::Status,
         >;
+        /// 创建订单商品
+        async fn create_order_goods(
+            &self,
+            request: tonic::Request<super::OrderGoods>,
+        ) -> std::result::Result<tonic::Response<super::Id>, tonic::Status>;
     }
     /// 订单服务
     #[derive(Debug)]
@@ -2438,6 +2538,50 @@ pub mod order_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = ListOrderSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/CreateOrderGoods" => {
+                    #[allow(non_camel_case_types)]
+                    struct CreateOrderGoodsSvc<T: OrderService>(pub Arc<T>);
+                    impl<T: OrderService> tonic::server::UnaryService<super::OrderGoods>
+                    for CreateOrderGoodsSvc<T> {
+                        type Response = super::Id;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::OrderGoods>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).create_order_goods(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = CreateOrderGoodsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -3337,60 +3481,6 @@ pub struct CategoryWithBrandsTree {
     pub category_with_brands: ::core::option::Option<CategoryWithBrands>,
     #[prost(string, tag = "2")]
     pub fullname: ::prost::alloc::string::String,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GoodsSku {
-    #[prost(message, optional, tag = "1")]
-    pub meta: ::core::option::Option<goods_sku::Meta>,
-    #[prost(map = "string, message", tag = "2")]
-    pub data: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        goods_sku::DataItem,
-    >,
-}
-/// Nested message and enum types in `GoodsSKU`.
-pub mod goods_sku {
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct MetaItems {
-        #[prost(string, repeated, tag = "1")]
-        pub items: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    }
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct Meta {
-        #[prost(string, repeated, tag = "1")]
-        pub names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-        #[prost(message, repeated, tag = "2")]
-        pub items: ::prost::alloc::vec::Vec<MetaItems>,
-    }
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Message)]
-    pub struct DataItem {
-        #[prost(string, repeated, tag = "1")]
-        pub items: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-        #[prost(string, tag = "2")]
-        pub items_str: ::prost::alloc::string::String,
-        #[prost(uint32, tag = "3")]
-        pub stock: u32,
-        #[prost(uint32, tag = "4")]
-        pub price: u32,
-        #[prost(uint32, tag = "5")]
-        pub origin_price: u32,
-        #[prost(int32, tag = "6")]
-        pub sort: i32,
-    }
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GoodsAttr {
-    #[prost(string, tag = "1")]
-    pub goods_id: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "2")]
-    pub sku: ::core::option::Option<GoodsSku>,
-    #[prost(uint64, tag = "3")]
-    pub ver: u64,
 }
 /// 查找品牌请求
 #[allow(clippy::derive_partial_eq_without_eq)]

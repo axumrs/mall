@@ -7,6 +7,7 @@ pub mod category_brand;
 pub mod goods;
 pub mod goods_attr;
 pub mod order;
+pub mod order_goods;
 pub mod paginate;
 pub mod user;
 

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package pb;
+
+import "goods_attr_message.proto";
+
+message OrderGoods {
+  string id = 1;
+  string order_id = 2;
+  string goods_id = 3;
+  string goods_sku = 4;
+  GoodsSKU.DataItem goods_snapshot = 5;
+  uint32 num = 6;
+  uint32 price = 7;
+}

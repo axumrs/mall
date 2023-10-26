@@ -265,4 +265,16 @@ impl OrderService for Order {
             orders: model::Order::to_pb_vec(p.data),
         }))
     }
+    /// 创建订单商品
+    async fn create_order_goods(
+        &self,
+        request: tonic::Request<pb::OrderGoods>,
+    ) -> std::result::Result<tonic::Response<pb::Id>, tonic::Status> {
+        let og = model::OrderGoods::from(request.into_inner());
+        let id = db::order_goods::create(&*self.pool, &og)
+            .await
+            .map_err(e2s)?;
+
+        Ok(tonic::Response::new(pb::Id { value: id }))
+    }
 }

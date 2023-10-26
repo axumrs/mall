@@ -139,6 +139,7 @@ CREATE TABLE IF NOT EXISTS "order_goods" ( -- 订单商品
 	"id" CHAR(20) PRIMARY KEY,
 	"order_id" CHAR(20) NOT NULL, -- 订单ID
 	"goods_id" CHAR(20) NOT NULL, -- 商品ID
+	"goods_sku" VARCHAR(255) NOT NULL, -- SKU
 	"goods_snapshot" JSONB NOT NULL, -- 商品快照
 	"num" u32 NOT NULL, -- 购买数量
 	"price" u32 NOT NULL -- 购买单价

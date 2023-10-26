@@ -4,6 +4,7 @@ package pb;
 
 import "address_message.proto";
 import "order_message.proto";
+import "order_goods_message.proto";
 import "aff_message.proto";
 import "id_message.proto";
 import "paginate_message.proto";
@@ -162,4 +163,7 @@ service OrderService {
   rpc FindOrder(FindOrderRequest) returns (FindOrderResponse);
   // 订单列表
   rpc ListOrder(ListOrderRequest) returns (ListOrderResponse);
+
+  // 创建订单商品
+  rpc CreateOrderGoods(OrderGoods) returns (ID);
 }
