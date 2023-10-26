@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{pb, utils::dt};
+use crate::{db, pb, utils::dt};
 
 #[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
 pub struct AddressDetail {
@@ -86,6 +86,94 @@ impl Into<pb::Address> for Address {
             is_del: self.is_del,
             dateline: dt::chrono2prost(&self.dateline),
             detail: Some(self.detail.into()),
+        }
+    }
+}
+
+// -- 查找地址请求 --
+
+pub enum FindAddressBy {
+    ID(String),
+    IsDefault,
+}
+
+impl From<pb::find_address_request::By> for FindAddressBy {
+    fn from(by: pb::find_address_request::By) -> Self {
+        match by {
+            pb::find_address_request::By::Id(id) => Self::ID(id),
+            pb::find_address_request::By::IsDefault(_) => Self::IsDefault,
+        }
+    }
+}
+
+impl Into<pb::find_address_request::By> for FindAddressBy {
+    fn into(self) -> pb::find_address_request::By {
+        match self {
+            Self::ID(id) => pb::find_address_request::By::Id(id),
+            Self::IsDefault => pb::find_address_request::By::IsDefault(true),
+        }
+    }
+}
+
+pub struct FindAddressRequest {
+    pub by: FindAddressBy,
+    pub user_id: Option<String>,
+    pub is_del: Option<bool>,
+}
+
+impl From<pb::FindAddressRequest> for FindAddressRequest {
+    fn from(r: pb::FindAddressRequest) -> Self {
+        Self {
+            by: FindAddressBy::from(r.by.unwrap_or(pb::find_address_request::By::IsDefault(true))),
+            user_id: r.user_id,
+            is_del: r.is_del,
+        }
+    }
+}
+
+impl Into<pb::FindAddressRequest> for FindAddressRequest {
+    fn into(self) -> pb::FindAddressRequest {
+        pb::FindAddressRequest {
+            user_id: self.user_id,
+            is_del: self.is_del,
+            by: Some(self.by.into()),
+        }
+    }
+}
+
+// -- 地址列表请求 --
+
+pub struct ListAddressRequest {
+    pub paginate: db::PaginateRequest,
+    pub user_id: Option<String>,
+    pub consignee: Option<String>,
+    pub phone: Option<String>,
+    pub address: Option<String>,
+    pub is_del: Option<bool>,
+}
+
+impl From<pb::ListAddressRequest> for ListAddressRequest {
+    fn from(r: pb::ListAddressRequest) -> Self {
+        Self {
+            paginate: r.paginate.unwrap().into(),
+            user_id: r.user_id,
+            consignee: r.consignee,
+            phone: r.phone,
+            address: r.address,
+            is_del: r.is_del,
+        }
+    }
+}
+
+impl Into<pb::ListAddressRequest> for ListAddressRequest {
+    fn into(self) -> pb::ListAddressRequest {
+        pb::ListAddressRequest {
+            paginate: Some(self.paginate.into()),
+            user_id: self.user_id,
+            consignee: self.consignee,
+            phone: self.phone,
+            address: self.address,
+            is_del: self.is_del,
         }
     }
 }

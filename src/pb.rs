@@ -970,6 +970,8 @@ pub struct ListAddressRequest {
     /// 详细地址
     #[prost(string, optional, tag = "5")]
     pub address: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, optional, tag = "6")]
+    pub is_del: ::core::option::Option<bool>,
 }
 /// 地址列表响应
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -989,6 +991,14 @@ pub struct DeleteOrRestoreAddressRequest {
     /// 用户ID。如果是用户进行操作，必须指定该参数
     #[prost(string, optional, tag = "2")]
     pub user_id: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// 获取默认地址请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetDefaultAddressRequest {
+    /// 用户ID
+    #[prost(string, tag = "1")]
+    pub user_id: ::prost::alloc::string::String,
 }
 /// Generated client implementations.
 pub mod order_service_client {
@@ -1219,6 +1229,32 @@ pub mod order_service_client {
                 .insert(GrpcMethod::new("pb.OrderService", "SetDefaultAddress"));
             self.inner.unary(req, path, codec).await
         }
+        /// 获取默认地址
+        pub async fn get_default_address(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetDefaultAddressRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindAddressResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.OrderService/GetDefaultAddress",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.OrderService", "GetDefaultAddress"));
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -1264,6 +1300,14 @@ pub mod order_service_server {
             &self,
             request: tonic::Request<super::Address>,
         ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 获取默认地址
+        async fn get_default_address(
+            &self,
+            request: tonic::Request<super::GetDefaultAddressRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindAddressResponse>,
+            tonic::Status,
+        >;
     }
     #[derive(Debug)]
     pub struct OrderServiceServer<T: OrderService> {
@@ -1599,6 +1643,52 @@ pub mod order_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = SetDefaultAddressSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/GetDefaultAddress" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetDefaultAddressSvc<T: OrderService>(pub Arc<T>);
+                    impl<
+                        T: OrderService,
+                    > tonic::server::UnaryService<super::GetDefaultAddressRequest>
+                    for GetDefaultAddressSvc<T> {
+                        type Response = super::FindAddressResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetDefaultAddressRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).get_default_address(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetDefaultAddressSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

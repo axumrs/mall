@@ -1,3 +1,4 @@
+pub mod address;
 pub mod banner;
 pub mod brand;
 pub mod cart;

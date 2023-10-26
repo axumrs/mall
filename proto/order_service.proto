@@ -33,6 +33,7 @@ message ListAddressRequest {
   optional string phone = 4;
   // 详细地址
   optional string address = 5;
+  optional bool is_del = 6;
 }
 
 // 地址列表响应
@@ -48,6 +49,12 @@ message DeleteOrRestoreAddressRequest {
   optional string user_id = 2;
 }
 
+// 获取默认地址请求
+message GetDefaultAddressRequest {
+  // 用户ID
+  string user_id = 1;
+}
+
 service OrderService {
   // 添加地址
   rpc CreateAddress(Address) returns (ID);
@@ -61,4 +68,6 @@ service OrderService {
   rpc ListAddress(ListAddressRequest) returns (ListAddressResponse);
   // 设置默认地址
   rpc SetDefaultAddress(Address) returns (Aff);
+  // 获取默认地址
+  rpc GetDefaultAddress(GetDefaultAddressRequest) returns (FindAddressResponse);
 }
