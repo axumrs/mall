@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{db, pb, utils::dt};
 
-use super::U32;
+use super::{DatetimeRange, U32Range, U32};
 
 #[derive(Debug, Default, Deserialize, Serialize, sqlx::Type, Clone, Copy)]
 #[sqlx(type_name = "order_status")]
@@ -170,6 +170,275 @@ impl Into<pb::Order> for Order {
             cancel_until_dateline: dt::chrono2prost(&self.cancel_until_dateline),
             confirm_until_dateline: dt::chrono2prost(&self.confirm_until_dateline),
             is_del: self.is_del,
+        }
+    }
+}
+
+// --- 修改订单金额请求 --
+pub struct EditOrderAmountRequest {
+    pub id: String,
+    pub amount: U32,
+}
+
+impl From<pb::EditOrderAmountRequest> for EditOrderAmountRequest {
+    fn from(r: pb::EditOrderAmountRequest) -> Self {
+        Self {
+            id: r.id,
+            amount: r.amount.into(),
+        }
+    }
+}
+
+impl Into<pb::EditOrderAmountRequest> for EditOrderAmountRequest {
+    fn into(self) -> pb::EditOrderAmountRequest {
+        pb::EditOrderAmountRequest {
+            id: self.id,
+            amount: self.amount.unsigned(),
+        }
+    }
+}
+
+// --- 修改订单收货地址请求 --
+
+pub struct EditOrderAddressRequest {
+    pub id: String,
+    pub address: sqlx::types::Json<super::AddressDetail>,
+}
+
+impl From<pb::EditOrderAddressRequest> for EditOrderAddressRequest {
+    fn from(r: pb::EditOrderAddressRequest) -> Self {
+        let addr = super::AddressDetail::from(r.address.unwrap());
+        Self {
+            id: r.id,
+            address: sqlx::types::Json::from(addr),
+        }
+    }
+}
+
+impl Into<pb::EditOrderAddressRequest> for EditOrderAddressRequest {
+    fn into(self) -> pb::EditOrderAddressRequest {
+        let addr: pb::AddressDetail = self.address.0.into();
+        pb::EditOrderAddressRequest {
+            id: self.id,
+            address: Some(addr),
+        }
+    }
+}
+
+// -- 修改订单状态请求 --
+pub struct EditOrderStatusRequest {
+    pub id: String,
+    pub status: OrderStatus,
+    /// 前置状态
+    pub pre_status: Option<OrderStatus>,
+}
+
+impl From<pb::EditOrderStatusRequest> for EditOrderStatusRequest {
+    fn from(r: pb::EditOrderStatusRequest) -> Self {
+        let status = pb::OrderStatus::from_i32(r.status).unwrap_or(pb::OrderStatus::Unspecified);
+        let status = OrderStatus::from(status);
+
+        let pre_status = match r.pre_status {
+            Some(i) => match pb::OrderStatus::from_i32(i) {
+                Some(s) => Some(OrderStatus::from(s)),
+                None => None,
+            },
+            None => None,
+        };
+
+        Self {
+            id: r.id,
+            status,
+            pre_status,
+        }
+    }
+}
+
+impl Into<pb::EditOrderStatusRequest> for EditOrderStatusRequest {
+    fn into(self) -> pb::EditOrderStatusRequest {
+        let status: pb::OrderStatus = self.status.into();
+        let status = status.into();
+
+        let pre_status = match self.pre_status {
+            Some(s) => {
+                let s: pb::OrderStatus = s.into();
+                Some(s.into())
+            }
+            None => None,
+        };
+
+        pb::EditOrderStatusRequest {
+            id: self.id,
+            status,
+            pre_status,
+        }
+    }
+}
+
+// -- 查找订单请求 --
+pub enum FindOrderBy {
+    ID(String),
+    SN(String),
+}
+
+impl From<pb::find_order_request::By> for FindOrderBy {
+    fn from(by: pb::find_order_request::By) -> Self {
+        match by {
+            pb::find_order_request::By::Id(id) => Self::ID(id),
+            pb::find_order_request::By::Sn(sn) => Self::SN(sn),
+        }
+    }
+}
+
+impl Into<pb::find_order_request::By> for FindOrderBy {
+    fn into(self) -> pb::find_order_request::By {
+        match self {
+            FindOrderBy::ID(id) => pb::find_order_request::By::Id(id),
+            FindOrderBy::SN(sn) => pb::find_order_request::By::Sn(sn),
+        }
+    }
+}
+
+pub struct FindOrderRequest {
+    pub by: FindOrderBy,
+    pub user_id: Option<String>,
+    pub is_del: Option<bool>,
+}
+
+impl From<pb::FindOrderRequest> for FindOrderRequest {
+    fn from(r: pb::FindOrderRequest) -> Self {
+        let by = FindOrderBy::from(r.by.unwrap());
+        Self {
+            by,
+            user_id: r.user_id,
+            is_del: r.is_del,
+        }
+    }
+}
+
+impl Into<pb::FindOrderRequest> for FindOrderRequest {
+    fn into(self) -> pb::FindOrderRequest {
+        pb::FindOrderRequest {
+            is_del: self.is_del,
+            user_id: self.user_id,
+            by: Some(self.by.into()),
+        }
+    }
+}
+
+// --  订单列表请求 --
+
+pub struct ListOrderRequest {
+    pub paginate: db::PaginateRequest,
+    /// 用户ID。如果是用户进行操作，必须指定该参数
+    pub user_id: Option<String>,
+    pub consignee: Option<String>,
+    pub phone: Option<String>,
+    /// 详细地址
+    pub address: Option<String>,
+    pub is_del: Option<bool>,
+    /// 订单编号
+    pub sn: Option<String>,
+    /// 状态
+    pub status: Option<OrderStatus>,
+    /// 快递单号
+    pub delivery_id: Option<String>,
+    /// 下单时间区间
+    pub date_range: Option<DatetimeRange>,
+    /// 取消时间区间
+    pub cancel_date_range: Option<DatetimeRange>,
+    /// 确认时间区间
+    pub confirm_date_range: Option<DatetimeRange>,
+    /// 金额区间
+    pub amount_range: Option<U32Range>,
+}
+
+impl From<pb::ListOrderRequest> for ListOrderRequest {
+    fn from(r: pb::ListOrderRequest) -> Self {
+        let status = match r.status {
+            Some(s) => match pb::OrderStatus::from_i32(s) {
+                Some(s) => Some(s.into()),
+                None => None,
+            },
+            None => None,
+        };
+
+        let date_range = match r.date_range {
+            Some(dr) => Some(DatetimeRange::from(dr)),
+            None => None,
+        };
+        let cancel_date_range: Option<DatetimeRange> = match r.cancel_date_range {
+            Some(dr) => Some(DatetimeRange::from(dr)),
+            None => None,
+        };
+        let confirm_date_range: Option<DatetimeRange> = match r.confirm_date_range {
+            Some(dr) => Some(DatetimeRange::from(dr)),
+            None => None,
+        };
+        let amount_range = match r.amount_range {
+            Some(ar) => Some(U32Range::from(ar)),
+            None => None,
+        };
+
+        Self {
+            paginate: r.paginate.unwrap().into(),
+            user_id: r.user_id,
+            consignee: r.consignee,
+            phone: r.phone,
+            address: r.address,
+            is_del: r.is_del,
+            sn: r.sn,
+            status,
+            delivery_id: r.delivery_id,
+            date_range,
+            cancel_date_range,
+            confirm_date_range,
+            amount_range,
+        }
+    }
+}
+
+impl Into<pb::ListOrderRequest> for ListOrderRequest {
+    fn into(self) -> pb::ListOrderRequest {
+        let status = match self.status {
+            Some(s) => {
+                let s: pb::OrderStatus = s.into();
+                Some(s.into())
+            }
+            None => None,
+        };
+
+        let date_range = match self.date_range {
+            Some(dr) => Some(dr.into()),
+            None => None,
+        };
+        let cancel_date_range: Option<pb::DateRange> = match self.cancel_date_range {
+            Some(dr) => Some(dr.into()),
+            None => None,
+        };
+        let confirm_date_range: Option<pb::DateRange> = match self.confirm_date_range {
+            Some(dr) => Some(dr.into()),
+            None => None,
+        };
+        let amount_range = match self.amount_range {
+            Some(ar) => Some(ar.into()),
+            None => None,
+        };
+
+        pb::ListOrderRequest {
+            paginate: Some(self.paginate.into()),
+            user_id: self.user_id,
+            consignee: self.consignee,
+            phone: self.phone,
+            address: self.address,
+            is_del: self.is_del,
+            sn: self.sn,
+            status,
+            delivery_id: self.delivery_id,
+            date_range,
+            cancel_date_range,
+            confirm_date_range,
+            amount_range,
         }
     }
 }
