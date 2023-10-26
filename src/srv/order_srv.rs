@@ -192,48 +192,77 @@ impl OrderService for Order {
         &self,
         request: tonic::Request<pb::Order>,
     ) -> std::result::Result<tonic::Response<pb::Id>, tonic::Status> {
-        unimplemented!()
+        let order = model::Order::from(request.into_inner());
+        let id = db::order::create(&*self.pool, &order).await.map_err(e2s)?;
+        Ok(tonic::Response::new(pb::Id { value: id }))
     }
     /// 修改订单金额
     async fn edit_order_amount(
         &self,
         request: tonic::Request<pb::EditOrderAmountRequest>,
     ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
-        unimplemented!()
+        let r = model::EditOrderAmountRequest::from(request.into_inner());
+        let rows = db::order::edit_amount(&*self.pool, &r).await.map_err(e2s)?;
+        Ok(tonic::Response::new(pb::Aff { rows }))
     }
     /// 修改订单收货地址
     async fn edit_order_address(
         &self,
         request: tonic::Request<pb::EditOrderAddressRequest>,
     ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
-        unimplemented!()
+        let r = model::EditOrderAddressRequest::from(request.into_inner());
+        let rows = db::order::edit_address(&*self.pool, &r)
+            .await
+            .map_err(e2s)?;
+        Ok(tonic::Response::new(pb::Aff { rows }))
     }
     /// 修改订单状态
     async fn edit_order_status(
         &self,
         request: tonic::Request<pb::EditOrderStatusRequest>,
     ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
-        unimplemented!()
+        let r = model::EditOrderStatusRequest::from(request.into_inner());
+        let rows = db::order::edit_status(&*self.pool, &r).await.map_err(e2s)?;
+        Ok(tonic::Response::new(pb::Aff { rows }))
     }
     /// 删除或还原订单
     async fn delete_or_restore_order(
         &self,
         request: tonic::Request<pb::DeleteOrRestoreOrderRequest>,
     ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
-        unimplemented!()
+        let r = request.into_inner();
+        let dor = r.dor.unwrap();
+
+        if dor.id.is_empty() {
+            return Err(tonic::Status::invalid_argument("未指定要操作的ID"));
+        }
+
+        let rows = db::order::del_or_restore(&*self.pool, &dor.id, dor.is_del, r.user_id)
+            .await
+            .map_err(e2s)?;
+        Ok(tonic::Response::new(pb::Aff { rows }))
     }
     /// 查找订单
     async fn find_order(
         &self,
         request: tonic::Request<pb::FindOrderRequest>,
     ) -> std::result::Result<tonic::Response<pb::FindOrderResponse>, tonic::Status> {
-        unimplemented!()
+        let r = model::FindOrderRequest::from(request.into_inner());
+        let order = db::order::find(&*self.pool, &r).await.map_err(e2s)?;
+        Ok(tonic::Response::new(pb::FindOrderResponse {
+            order: model::Order::to_pb_option(order),
+        }))
     }
     /// 订单列表
     async fn list_order(
         &self,
         request: tonic::Request<pb::ListOrderRequest>,
     ) -> std::result::Result<tonic::Response<pb::ListOrderResponse>, tonic::Status> {
-        unimplemented!()
+        let r = model::ListOrderRequest::from(request.into_inner());
+        let p = db::order::list(&*self.pool, &r).await.map_err(ce2s)?;
+        Ok(tonic::Response::new(pb::ListOrderResponse {
+            paginate: Some(p.to_pb()),
+            orders: model::Order::to_pb_vec(p.data),
+        }))
     }
 }
