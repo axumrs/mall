@@ -187,4 +187,53 @@ impl OrderService for Order {
             address: addr,
         }))
     }
+    /// 创建订单
+    async fn create_order(
+        &self,
+        request: tonic::Request<pb::Order>,
+    ) -> std::result::Result<tonic::Response<pb::Id>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 修改订单金额
+    async fn edit_order_amount(
+        &self,
+        request: tonic::Request<pb::EditOrderAmountRequest>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 修改订单收货地址
+    async fn edit_order_address(
+        &self,
+        request: tonic::Request<pb::EditOrderAddressRequest>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 修改订单状态
+    async fn edit_order_status(
+        &self,
+        request: tonic::Request<pb::EditOrderStatusRequest>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 删除或还原订单
+    async fn delete_or_restore_order(
+        &self,
+        request: tonic::Request<pb::DeleteOrRestoreOrderRequest>,
+    ) -> std::result::Result<tonic::Response<pb::Aff>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 查找订单
+    async fn find_order(
+        &self,
+        request: tonic::Request<pb::FindOrderRequest>,
+    ) -> std::result::Result<tonic::Response<pb::FindOrderResponse>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 订单列表
+    async fn list_order(
+        &self,
+        request: tonic::Request<pb::ListOrderRequest>,
+    ) -> std::result::Result<tonic::Response<pb::ListOrderResponse>, tonic::Status> {
+        unimplemented!()
+    }
 }

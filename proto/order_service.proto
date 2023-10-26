@@ -3,10 +3,13 @@ syntax = "proto3";
 package pb;
 
 import "address_message.proto";
+import "order_message.proto";
 import "aff_message.proto";
 import "id_message.proto";
 import "paginate_message.proto";
 import "del_or_restore_message.proto";
+import "daterange_message.proto";
+import "uintrange_message.proto";
 
 // 查找地址请求
 message FindAddressRequest {
@@ -55,6 +58,80 @@ message GetDefaultAddressRequest {
   string user_id = 1;
 }
 
+// 修改订单金额请求
+message EditOrderAmountRequest {
+  string id = 1;
+  uint32 amount = 2;
+}
+
+// 修改订单收货地址请求
+message EditOrderAddressRequest {
+  string id = 1;
+  AddressDetail address = 2;
+}
+
+// 修改订单状态请求
+message EditOrderStatusRequest {
+  string id = 1;
+  OrderStatus status = 2;
+  // 前置状态
+  optional OrderStatus pre_status = 3;
+}
+
+// 删除或还原订单请求
+message DeleteOrRestoreOrderRequest {
+  DeleteOrRestoreRequest dor = 1;
+  // 用户ID。如果是用户进行操作，必须指定该参数
+  optional string user_id = 2;
+}
+
+// 查找订单请求
+message FindOrderRequest {
+  oneof by {
+    string id = 1;
+    string sn = 2;
+  }
+  optional bool is_del = 3;
+  // 用户ID。如果是用户进行操作，必须指定该参数
+  optional string user_id = 4;
+}
+
+// 查找订单响应
+message FindOrderResponse { optional Order order = 1; }
+
+// 订单列表请求
+message ListOrderRequest {
+  PaginateRequest paginate = 1;
+  // 用户ID。如果是用户进行操作，必须指定该参数
+  optional string user_id = 2;
+  optional string consignee = 3;
+  optional string phone = 4;
+  // 详细地址
+  optional string address = 5;
+  optional bool is_del = 6;
+  // 订单编号
+  optional string sn = 7;
+  // 状态
+  optional OrderStatus status = 8;
+  // 快递单号
+  optional string delivery_id = 9;
+  // 下单时间区间
+  optional DateRange date_range = 10;
+  // 取消时间区间
+  optional DateRange cancel_date_range = 11;
+  // 确认时间区间
+  optional DateRange confirm_date_range = 12;
+  // 金额区间
+  optional U32Range amount_range = 13;
+}
+
+// 订单列表响应
+message ListOrderResponse {
+  Paginate paginate = 1;
+  repeated Order orders = 2;
+}
+
+// 订单服务
 service OrderService {
   // 添加地址
   rpc CreateAddress(Address) returns (ID);
@@ -70,4 +147,19 @@ service OrderService {
   rpc SetDefaultAddress(Address) returns (Aff);
   // 获取默认地址
   rpc GetDefaultAddress(GetDefaultAddressRequest) returns (FindAddressResponse);
+
+  // 创建订单
+  rpc CreateOrder(Order) returns (ID);
+  // 修改订单金额
+  rpc EditOrderAmount(EditOrderAmountRequest) returns (Aff);
+  // 修改订单收货地址
+  rpc EditOrderAddress(EditOrderAddressRequest) returns (Aff);
+  // 修改订单状态
+  rpc EditOrderStatus(EditOrderStatusRequest) returns (Aff);
+  // 删除或还原订单
+  rpc DeleteOrRestoreOrder(DeleteOrRestoreOrderRequest) returns (Aff);
+  // 查找订单
+  rpc FindOrder(FindOrderRequest) returns (FindOrderResponse);
+  // 订单列表
+  rpc ListOrder(ListOrderRequest) returns (ListOrderResponse);
 }

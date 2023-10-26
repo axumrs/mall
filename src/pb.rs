@@ -1106,11 +1106,131 @@ pub struct GetDefaultAddressRequest {
     #[prost(string, tag = "1")]
     pub user_id: ::prost::alloc::string::String,
 }
+/// 修改订单金额请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EditOrderAmountRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub amount: u32,
+}
+/// 修改订单收货地址请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EditOrderAddressRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub address: ::core::option::Option<AddressDetail>,
+}
+/// 修改订单状态请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EditOrderStatusRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(enumeration = "OrderStatus", tag = "2")]
+    pub status: i32,
+    /// 前置状态
+    #[prost(enumeration = "OrderStatus", optional, tag = "3")]
+    pub pre_status: ::core::option::Option<i32>,
+}
+/// 删除或还原订单请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteOrRestoreOrderRequest {
+    #[prost(message, optional, tag = "1")]
+    pub dor: ::core::option::Option<DeleteOrRestoreRequest>,
+    /// 用户ID。如果是用户进行操作，必须指定该参数
+    #[prost(string, optional, tag = "2")]
+    pub user_id: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// 查找订单请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindOrderRequest {
+    #[prost(bool, optional, tag = "3")]
+    pub is_del: ::core::option::Option<bool>,
+    /// 用户ID。如果是用户进行操作，必须指定该参数
+    #[prost(string, optional, tag = "4")]
+    pub user_id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(oneof = "find_order_request::By", tags = "1, 2")]
+    pub by: ::core::option::Option<find_order_request::By>,
+}
+/// Nested message and enum types in `FindOrderRequest`.
+pub mod find_order_request {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum By {
+        #[prost(string, tag = "1")]
+        Id(::prost::alloc::string::String),
+        #[prost(string, tag = "2")]
+        Sn(::prost::alloc::string::String),
+    }
+}
+/// 查找订单响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindOrderResponse {
+    #[prost(message, optional, tag = "1")]
+    pub order: ::core::option::Option<Order>,
+}
+/// 订单列表请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListOrderRequest {
+    #[prost(message, optional, tag = "1")]
+    pub paginate: ::core::option::Option<PaginateRequest>,
+    /// 用户ID。如果是用户进行操作，必须指定该参数
+    #[prost(string, optional, tag = "2")]
+    pub user_id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "3")]
+    pub consignee: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "4")]
+    pub phone: ::core::option::Option<::prost::alloc::string::String>,
+    /// 详细地址
+    #[prost(string, optional, tag = "5")]
+    pub address: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, optional, tag = "6")]
+    pub is_del: ::core::option::Option<bool>,
+    /// 订单编号
+    #[prost(string, optional, tag = "7")]
+    pub sn: ::core::option::Option<::prost::alloc::string::String>,
+    /// 状态
+    #[prost(enumeration = "OrderStatus", optional, tag = "8")]
+    pub status: ::core::option::Option<i32>,
+    /// 快递单号
+    #[prost(string, optional, tag = "9")]
+    pub delivery_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// 下单时间区间
+    #[prost(message, optional, tag = "10")]
+    pub date_range: ::core::option::Option<DateRange>,
+    /// 取消时间区间
+    #[prost(message, optional, tag = "11")]
+    pub cancel_date_range: ::core::option::Option<DateRange>,
+    /// 确认时间区间
+    #[prost(message, optional, tag = "12")]
+    pub confirm_date_range: ::core::option::Option<DateRange>,
+    /// 金额区间
+    #[prost(message, optional, tag = "13")]
+    pub amount_range: ::core::option::Option<U32Range>,
+}
+/// 订单列表响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListOrderResponse {
+    #[prost(message, optional, tag = "1")]
+    pub paginate: ::core::option::Option<Paginate>,
+    #[prost(message, repeated, tag = "2")]
+    pub orders: ::prost::alloc::vec::Vec<Order>,
+}
 /// Generated client implementations.
 pub mod order_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    /// 订单服务
     #[derive(Debug, Clone)]
     pub struct OrderServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -1361,6 +1481,171 @@ pub mod order_service_client {
                 .insert(GrpcMethod::new("pb.OrderService", "GetDefaultAddress"));
             self.inner.unary(req, path, codec).await
         }
+        /// 创建订单
+        pub async fn create_order(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Order>,
+        ) -> std::result::Result<tonic::Response<super::Id>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.OrderService/CreateOrder",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.OrderService", "CreateOrder"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 修改订单金额
+        pub async fn edit_order_amount(
+            &mut self,
+            request: impl tonic::IntoRequest<super::EditOrderAmountRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.OrderService/EditOrderAmount",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.OrderService", "EditOrderAmount"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 修改订单收货地址
+        pub async fn edit_order_address(
+            &mut self,
+            request: impl tonic::IntoRequest<super::EditOrderAddressRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.OrderService/EditOrderAddress",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.OrderService", "EditOrderAddress"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 修改订单状态
+        pub async fn edit_order_status(
+            &mut self,
+            request: impl tonic::IntoRequest<super::EditOrderStatusRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.OrderService/EditOrderStatus",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.OrderService", "EditOrderStatus"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 删除或还原订单
+        pub async fn delete_or_restore_order(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteOrRestoreOrderRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.OrderService/DeleteOrRestoreOrder",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.OrderService", "DeleteOrRestoreOrder"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 查找订单
+        pub async fn find_order(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FindOrderRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindOrderResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.OrderService/FindOrder",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("pb.OrderService", "FindOrder"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 订单列表
+        pub async fn list_order(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListOrderRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListOrderResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.OrderService/ListOrder",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("pb.OrderService", "ListOrder"));
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -1414,7 +1699,49 @@ pub mod order_service_server {
             tonic::Response<super::FindAddressResponse>,
             tonic::Status,
         >;
+        /// 创建订单
+        async fn create_order(
+            &self,
+            request: tonic::Request<super::Order>,
+        ) -> std::result::Result<tonic::Response<super::Id>, tonic::Status>;
+        /// 修改订单金额
+        async fn edit_order_amount(
+            &self,
+            request: tonic::Request<super::EditOrderAmountRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 修改订单收货地址
+        async fn edit_order_address(
+            &self,
+            request: tonic::Request<super::EditOrderAddressRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 修改订单状态
+        async fn edit_order_status(
+            &self,
+            request: tonic::Request<super::EditOrderStatusRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 删除或还原订单
+        async fn delete_or_restore_order(
+            &self,
+            request: tonic::Request<super::DeleteOrRestoreOrderRequest>,
+        ) -> std::result::Result<tonic::Response<super::Aff>, tonic::Status>;
+        /// 查找订单
+        async fn find_order(
+            &self,
+            request: tonic::Request<super::FindOrderRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindOrderResponse>,
+            tonic::Status,
+        >;
+        /// 订单列表
+        async fn list_order(
+            &self,
+            request: tonic::Request<super::ListOrderRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListOrderResponse>,
+            tonic::Status,
+        >;
     }
+    /// 订单服务
     #[derive(Debug)]
     pub struct OrderServiceServer<T: OrderService> {
         inner: _Inner<T>,
@@ -1795,6 +2122,322 @@ pub mod order_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = GetDefaultAddressSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/CreateOrder" => {
+                    #[allow(non_camel_case_types)]
+                    struct CreateOrderSvc<T: OrderService>(pub Arc<T>);
+                    impl<T: OrderService> tonic::server::UnaryService<super::Order>
+                    for CreateOrderSvc<T> {
+                        type Response = super::Id;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Order>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).create_order(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = CreateOrderSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/EditOrderAmount" => {
+                    #[allow(non_camel_case_types)]
+                    struct EditOrderAmountSvc<T: OrderService>(pub Arc<T>);
+                    impl<
+                        T: OrderService,
+                    > tonic::server::UnaryService<super::EditOrderAmountRequest>
+                    for EditOrderAmountSvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::EditOrderAmountRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).edit_order_amount(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = EditOrderAmountSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/EditOrderAddress" => {
+                    #[allow(non_camel_case_types)]
+                    struct EditOrderAddressSvc<T: OrderService>(pub Arc<T>);
+                    impl<
+                        T: OrderService,
+                    > tonic::server::UnaryService<super::EditOrderAddressRequest>
+                    for EditOrderAddressSvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::EditOrderAddressRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).edit_order_address(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = EditOrderAddressSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/EditOrderStatus" => {
+                    #[allow(non_camel_case_types)]
+                    struct EditOrderStatusSvc<T: OrderService>(pub Arc<T>);
+                    impl<
+                        T: OrderService,
+                    > tonic::server::UnaryService<super::EditOrderStatusRequest>
+                    for EditOrderStatusSvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::EditOrderStatusRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).edit_order_status(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = EditOrderStatusSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/DeleteOrRestoreOrder" => {
+                    #[allow(non_camel_case_types)]
+                    struct DeleteOrRestoreOrderSvc<T: OrderService>(pub Arc<T>);
+                    impl<
+                        T: OrderService,
+                    > tonic::server::UnaryService<super::DeleteOrRestoreOrderRequest>
+                    for DeleteOrRestoreOrderSvc<T> {
+                        type Response = super::Aff;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::DeleteOrRestoreOrderRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).delete_or_restore_order(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = DeleteOrRestoreOrderSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/FindOrder" => {
+                    #[allow(non_camel_case_types)]
+                    struct FindOrderSvc<T: OrderService>(pub Arc<T>);
+                    impl<
+                        T: OrderService,
+                    > tonic::server::UnaryService<super::FindOrderRequest>
+                    for FindOrderSvc<T> {
+                        type Response = super::FindOrderResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::FindOrderRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move { (*inner).find_order(request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = FindOrderSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/ListOrder" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListOrderSvc<T: OrderService>(pub Arc<T>);
+                    impl<
+                        T: OrderService,
+                    > tonic::server::UnaryService<super::ListOrderRequest>
+                    for ListOrderSvc<T> {
+                        type Response = super::ListOrderResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListOrderRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move { (*inner).list_order(request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ListOrderSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
