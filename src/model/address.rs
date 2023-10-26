@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{db, pb, utils::dt};
 
-#[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
+#[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow, Clone)]
 pub struct AddressDetail {
     /// 收件人
     pub consignee: String,
@@ -48,7 +48,7 @@ impl Into<pb::AddressDetail> for AddressDetail {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
+#[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow, Clone)]
 pub struct Address {
     pub id: String,
     /// 用户ID

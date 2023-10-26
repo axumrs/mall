@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package pb;
+
+import "address_message.proto";
+import "google/protobuf/timestamp.proto";
+
+// 订单状态
+enum OrderStatus {
+  // 未知
+  Unspecified = 0;
+  // 待支付（已创建订单）
+  PendingPay = 1;
+  // 用户取消
+  UserCancel = 2;
+  // 管理员取消
+  AdminCancel = 3;
+  // 超时自动取消
+  TimeoutCancel = 4;
+  // 已支付（等待发货）
+  Paied = 5;
+  // 运输中（已发货）
+  Delivering = 6;
+  // 已送达（等待用户确认）
+  Delivered = 7;
+  // 完成（用户确认收货）
+  UserConfirmedDone = 8;
+  // 完成（自动确认收货）
+  AutoConfirmedDone = 9;
+}
+
+// 订单
+message Order {
+  string id = 1;
+  // 用户ID
+  string user_id = 2;
+  // 购物车ID
+  string cart_id = 3;
+  // 编号
+  string sn = 4;
+  // 状态
+  OrderStatus status = 5;
+  // 金额
+  uint32 amount = 6;
+  // 总数
+  uint32 total_num = 7;
+  // 运费
+  uint32 freight = 8;
+  // 收货地址
+  AddressDetail address = 9;
+  // 快递单号
+  string delivery_id = 10;
+  // 下单时间
+  google.protobuf.Timestamp dateline = 11;
+  // 自动取消订单的时间
+  google.protobuf.Timestamp cancel_until_dateline = 12;
+  // 自动确认订单的时间
+  google.protobuf.Timestamp confirm_until_dateline = 13;
+  bool is_del = 14;
+}

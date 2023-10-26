@@ -61,6 +61,160 @@ impl UserStatus {
         }
     }
 }
+/// 地址详情
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AddressDetail {
+    /// 收件人
+    #[prost(string, tag = "1")]
+    pub consignee: ::prost::alloc::string::String,
+    /// 电话
+    #[prost(string, tag = "2")]
+    pub phone: ::prost::alloc::string::String,
+    /// 详细地址
+    #[prost(string, tag = "3")]
+    pub address: ::prost::alloc::string::String,
+    /// 省市区【省级】
+    #[prost(string, tag = "4")]
+    pub province: ::prost::alloc::string::String,
+    /// 城市【地级】
+    #[prost(string, tag = "5")]
+    pub city: ::prost::alloc::string::String,
+    /// 县市区【县级】
+    #[prost(string, tag = "6")]
+    pub county: ::prost::alloc::string::String,
+    /// 邮编
+    #[prost(string, tag = "7")]
+    pub post_code: ::prost::alloc::string::String,
+}
+/// 地址
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Address {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// 用户ID
+    #[prost(string, tag = "2")]
+    pub user_id: ::prost::alloc::string::String,
+    /// 是否默认地址
+    #[prost(bool, tag = "3")]
+    pub is_default: bool,
+    /// 是否删除
+    #[prost(bool, tag = "4")]
+    pub is_del: bool,
+    /// 添加时间
+    #[prost(message, optional, tag = "5")]
+    pub dateline: ::core::option::Option<::prost_types::Timestamp>,
+    /// 地址详情
+    #[prost(message, optional, tag = "6")]
+    pub detail: ::core::option::Option<AddressDetail>,
+}
+/// 订单
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Order {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// 用户ID
+    #[prost(string, tag = "2")]
+    pub user_id: ::prost::alloc::string::String,
+    /// 购物车ID
+    #[prost(string, tag = "3")]
+    pub cart_id: ::prost::alloc::string::String,
+    /// 编号
+    #[prost(string, tag = "4")]
+    pub sn: ::prost::alloc::string::String,
+    /// 状态
+    #[prost(enumeration = "OrderStatus", tag = "5")]
+    pub status: i32,
+    /// 金额
+    #[prost(uint32, tag = "6")]
+    pub amount: u32,
+    /// 总数
+    #[prost(uint32, tag = "7")]
+    pub total_num: u32,
+    /// 运费
+    #[prost(uint32, tag = "8")]
+    pub freight: u32,
+    /// 收货地址
+    #[prost(message, optional, tag = "9")]
+    pub address: ::core::option::Option<AddressDetail>,
+    /// 快递单号
+    #[prost(string, tag = "10")]
+    pub delivery_id: ::prost::alloc::string::String,
+    /// 下单时间
+    #[prost(message, optional, tag = "11")]
+    pub dateline: ::core::option::Option<::prost_types::Timestamp>,
+    /// 自动取消订单的时间
+    #[prost(message, optional, tag = "12")]
+    pub cancel_until_dateline: ::core::option::Option<::prost_types::Timestamp>,
+    /// 自动确认订单的时间
+    #[prost(message, optional, tag = "13")]
+    pub confirm_until_dateline: ::core::option::Option<::prost_types::Timestamp>,
+    #[prost(bool, tag = "14")]
+    pub is_del: bool,
+}
+/// 订单状态
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum OrderStatus {
+    /// 未知
+    Unspecified = 0,
+    /// 待支付（已创建订单）
+    PendingPay = 1,
+    /// 用户取消
+    UserCancel = 2,
+    /// 管理员取消
+    AdminCancel = 3,
+    /// 超时自动取消
+    TimeoutCancel = 4,
+    /// 已支付（等待发货）
+    Paied = 5,
+    /// 运输中（已发货）
+    Delivering = 6,
+    /// 已送达（等待用户确认）
+    Delivered = 7,
+    /// 完成（用户确认收货）
+    UserConfirmedDone = 8,
+    /// 完成（自动确认收货）
+    AutoConfirmedDone = 9,
+}
+impl OrderStatus {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            OrderStatus::Unspecified => "Unspecified",
+            OrderStatus::PendingPay => "PendingPay",
+            OrderStatus::UserCancel => "UserCancel",
+            OrderStatus::AdminCancel => "AdminCancel",
+            OrderStatus::TimeoutCancel => "TimeoutCancel",
+            OrderStatus::Paied => "Paied",
+            OrderStatus::Delivering => "Delivering",
+            OrderStatus::Delivered => "Delivered",
+            OrderStatus::UserConfirmedDone => "UserConfirmedDone",
+            OrderStatus::AutoConfirmedDone => "AutoConfirmedDone",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "Unspecified" => Some(Self::Unspecified),
+            "PendingPay" => Some(Self::PendingPay),
+            "UserCancel" => Some(Self::UserCancel),
+            "AdminCancel" => Some(Self::AdminCancel),
+            "TimeoutCancel" => Some(Self::TimeoutCancel),
+            "Paied" => Some(Self::Paied),
+            "Delivering" => Some(Self::Delivering),
+            "Delivered" => Some(Self::Delivered),
+            "UserConfirmedDone" => Some(Self::UserConfirmedDone),
+            "AutoConfirmedDone" => Some(Self::AutoConfirmedDone),
+            _ => None,
+        }
+    }
+}
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DateRange {
@@ -845,54 +999,6 @@ pub struct Goods {
     pub dateline: ::core::option::Option<::prost_types::Timestamp>,
     #[prost(bool, tag = "19")]
     pub is_del: bool,
-}
-/// 地址详情
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AddressDetail {
-    /// 收件人
-    #[prost(string, tag = "1")]
-    pub consignee: ::prost::alloc::string::String,
-    /// 电话
-    #[prost(string, tag = "2")]
-    pub phone: ::prost::alloc::string::String,
-    /// 详细地址
-    #[prost(string, tag = "3")]
-    pub address: ::prost::alloc::string::String,
-    /// 省市区【省级】
-    #[prost(string, tag = "4")]
-    pub province: ::prost::alloc::string::String,
-    /// 城市【地级】
-    #[prost(string, tag = "5")]
-    pub city: ::prost::alloc::string::String,
-    /// 县市区【县级】
-    #[prost(string, tag = "6")]
-    pub county: ::prost::alloc::string::String,
-    /// 邮编
-    #[prost(string, tag = "7")]
-    pub post_code: ::prost::alloc::string::String,
-}
-/// 地址
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Address {
-    #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
-    /// 用户ID
-    #[prost(string, tag = "2")]
-    pub user_id: ::prost::alloc::string::String,
-    /// 是否默认地址
-    #[prost(bool, tag = "3")]
-    pub is_default: bool,
-    /// 是否删除
-    #[prost(bool, tag = "4")]
-    pub is_del: bool,
-    /// 添加时间
-    #[prost(message, optional, tag = "5")]
-    pub dateline: ::core::option::Option<::prost_types::Timestamp>,
-    /// 地址详情
-    #[prost(message, optional, tag = "6")]
-    pub detail: ::core::option::Option<AddressDetail>,
 }
 /// 分页
 #[allow(clippy::derive_partial_eq_without_eq)]

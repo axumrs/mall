@@ -105,3 +105,41 @@ CREATE TABLE IF NOT EXISTS "address" ( -- 收货地址
 	"is_del" BOOLEAN NOT NULL DEFAULT FALSE, -- 是否删除
 	"dateline" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP -- 添加时间
 );
+
+CREATE TYPE "order_status" AS ENUM( -- 订单状态
+	'Unspecified', -- 未知
+	'PendingPay', -- 待支付（已创建订单）
+	'UserCancel', -- 用户取消
+	'AdminCancel',  -- 管理员取消
+	'TimeoutCancel', -- 超时
+	'Paied', -- 已支付（等待发货）
+	'Delivering', -- 运输中（已发货）
+	'Delivered', -- 已送达（等待用户确认）
+	'UserConfirmedDone', -- 完成（用户确认收货）
+	'AutoConfirmedDone' -- 完成（自动确认收货）
+);
+CREATE TABLE IF NOT EXISTS "orders" ( -- 订单
+	"id" CHAR(20) PRIMARY KEY,
+	"user_id" CHAR(20) NOT NULL, -- 用户ID
+	"cart_id" CHAR(20) NOT NULL, -- 购物车ID
+	"sn" VARCHAR(64) NOT NULL, -- 编号
+	"status" order_status NOT NULL DEFAULT 'Unspecified', -- 状态
+	"amount" u32 NOT NULL, -- 金额
+	"total_num" u32 NOT NULL, -- 总数
+	"freight" u32 NOT NULL DEFAULT 0, -- 运费
+	"address" JSONB NOT NULL, -- 收货地址
+	"delivery_id" VARCHAR(64) NOT NULL DEFAULT '', -- 快递单号
+	"dateline" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 下单时间
+	"cancel_until_dateline" TIMESTAMPTZ NOT NULL, -- 自动取消订单的时间
+	"confirm_until_dateline" TIMESTAMPTZ NOT NULL, -- 自动确认订单的时间
+	"is_del" BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS "order_goods" ( -- 订单商品
+	"id" CHAR(20) PRIMARY KEY,
+	"order_id" CHAR(20) NOT NULL, -- 订单ID
+	"goods_id" CHAR(20) NOT NULL, -- 商品ID
+	"goods_snapshot" JSONB NOT NULL, -- 商品快照
+	"num" u32 NOT NULL, -- 购买数量
+	"price" u32 NOT NULL -- 购买单价
+);
