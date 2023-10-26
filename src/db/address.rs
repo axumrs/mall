@@ -67,12 +67,12 @@ pub async fn del_or_restore<'a>(
     e: impl sqlx::PgExecutor<'a>,
     id: &str,
     is_del: bool,
-    user_id: Option<&'a str>,
+    user_id: Option<String>,
 ) -> Result<u64, sqlx::Error> {
     let mut q = sqlx::QueryBuilder::new("UPDATE address SET is_del =");
     q.push_bind(is_del).push(" WHERE id=").push_bind(id);
 
-    if let Some(user_id) = user_id {
+    if let Some(user_id) = &user_id {
         q.push(" AND user_id = ").push_bind(user_id);
     }
 
@@ -298,9 +298,14 @@ mod test {
     #[tokio::test]
     async fn test_db_del_or_restore_address() {
         let conn = get_conn().await;
-        let aff = super::del_or_restore(&conn, "ckss90sdrfar2m1feiq0", false, Some(TEST_USER_ID))
-            .await
-            .unwrap();
+        let aff = super::del_or_restore(
+            &conn,
+            "ckss90sdrfar2m1feiq0",
+            false,
+            Some(TEST_USER_ID.into()),
+        )
+        .await
+        .unwrap();
         assert!(aff > 0);
     }
 
