@@ -46,7 +46,7 @@ impl Into<pb::PayStatus> for PayStatus {
 }
 
 /// 支付
-#[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow)]
+#[derive(Debug, Default, Deserialize, Serialize, sqlx::FromRow, Clone)]
 pub struct Pay {
     pub id: String,
     /// 订单ID
