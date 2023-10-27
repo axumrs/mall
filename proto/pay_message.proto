@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/timestamp.proto";
+
+// 支付状态
+enum PayStatus {
+  // 未指定
+  PAYSTATUS_UNSPECIFIED = 0;
+  // 未支付
+  PAYSTATUS_UNPAY = 1;
+  // 正在支付
+  PAYSTATUS_PAYING = 2;
+  // 支付完成
+  PAYSTATUS_DONE = 3;
+  // 超时取消
+  PAYSTATUS_TIMEOUT_CANCEL = 4;
+}
+
+// 支付
+message Pay {
+  string id = 1;
+  // 订单ID
+  string order_id = 2;
+  // 支付状态
+  PayStatus status = 3;
+  // 交易ID
+  string tx_id = 4;
+  // 支付金额
+  uint32 amount = 5;
+  // 创建时间
+  google.protobuf.Timestamp dateline = 6;
+  // 支付超时的时间
+  google.protobuf.Timestamp timeout_until_dateline = 7;
+  // 完成支付的时间
+  google.protobuf.Timestamp done_dateline = 8;
+}

@@ -277,4 +277,39 @@ impl OrderService for Order {
 
         Ok(tonic::Response::new(pb::Id { value: id }))
     }
+    /// 创建支付
+    async fn create_pay(
+        &self,
+        request: tonic::Request<pb::Pay>,
+    ) -> std::result::Result<tonic::Response<pb::Id>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 查找支付
+    async fn find_pay(
+        &self,
+        request: tonic::Request<pb::FindPayRequest>,
+    ) -> std::result::Result<tonic::Response<pb::FindPayResponse>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 订单支付列表
+    async fn list_pay_for_order(
+        &self,
+        request: tonic::Request<pb::ListPayForOrderRequest>,
+    ) -> std::result::Result<tonic::Response<pb::ListPayForOrderResponse>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 完成支付
+    async fn pay_done(
+        &self,
+        request: tonic::Request<pb::PayDoneRequest>,
+    ) -> std::result::Result<tonic::Response<pb::Pay>, tonic::Status> {
+        unimplemented!()
+    }
+    /// 是否正在支付
+    async fn order_is_paying(
+        &self,
+        request: tonic::Request<pb::OrderIsPayingRequest>,
+    ) -> std::result::Result<tonic::Response<pb::OrderIsPayingResponse>, tonic::Status> {
+        unimplemented!()
+    }
 }

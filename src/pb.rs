@@ -1072,6 +1072,75 @@ pub struct Goods {
     #[prost(bool, tag = "19")]
     pub is_del: bool,
 }
+/// 支付
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Pay {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// 订单ID
+    #[prost(string, tag = "2")]
+    pub order_id: ::prost::alloc::string::String,
+    /// 支付状态
+    #[prost(enumeration = "PayStatus", tag = "3")]
+    pub status: i32,
+    /// 交易ID
+    #[prost(string, tag = "4")]
+    pub tx_id: ::prost::alloc::string::String,
+    /// 支付金额
+    #[prost(uint32, tag = "5")]
+    pub amount: u32,
+    /// 创建时间
+    #[prost(message, optional, tag = "6")]
+    pub dateline: ::core::option::Option<::prost_types::Timestamp>,
+    /// 支付超时的时间
+    #[prost(message, optional, tag = "7")]
+    pub timeout_until_dateline: ::core::option::Option<::prost_types::Timestamp>,
+    /// 完成支付的时间
+    #[prost(message, optional, tag = "8")]
+    pub done_dateline: ::core::option::Option<::prost_types::Timestamp>,
+}
+/// 支付状态
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum PayStatus {
+    /// 未指定
+    PaystatusUnspecified = 0,
+    /// 未支付
+    PaystatusUnpay = 1,
+    /// 正在支付
+    PaystatusPaying = 2,
+    /// 支付完成
+    PaystatusDone = 3,
+    /// 超时取消
+    PaystatusTimeoutCancel = 4,
+}
+impl PayStatus {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            PayStatus::PaystatusUnspecified => "PAYSTATUS_UNSPECIFIED",
+            PayStatus::PaystatusUnpay => "PAYSTATUS_UNPAY",
+            PayStatus::PaystatusPaying => "PAYSTATUS_PAYING",
+            PayStatus::PaystatusDone => "PAYSTATUS_DONE",
+            PayStatus::PaystatusTimeoutCancel => "PAYSTATUS_TIMEOUT_CANCEL",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "PAYSTATUS_UNSPECIFIED" => Some(Self::PaystatusUnspecified),
+            "PAYSTATUS_UNPAY" => Some(Self::PaystatusUnpay),
+            "PAYSTATUS_PAYING" => Some(Self::PaystatusPaying),
+            "PAYSTATUS_DONE" => Some(Self::PaystatusDone),
+            "PAYSTATUS_TIMEOUT_CANCEL" => Some(Self::PaystatusTimeoutCancel),
+            _ => None,
+        }
+    }
+}
 /// 分页
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1296,6 +1365,86 @@ pub struct ListOrderResponse {
     pub paginate: ::core::option::Option<Paginate>,
     #[prost(message, repeated, tag = "2")]
     pub orders: ::prost::alloc::vec::Vec<Order>,
+}
+/// 查找支付请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindPayRequest {
+    /// 支付ID
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// 用户ID。如果是用户进行操作，必须指定该参数
+    #[prost(string, optional, tag = "2")]
+    pub user_id: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// 查找支付响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FindPayResponse {
+    #[prost(message, optional, tag = "1")]
+    pub pay: ::core::option::Option<Pay>,
+}
+/// 订单支付列表请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListPayForOrderRequest {
+    #[prost(string, tag = "1")]
+    pub order_id: ::prost::alloc::string::String,
+    /// 用户ID。如果是用户进行操作，必须指定该参数
+    #[prost(string, optional, tag = "2")]
+    pub user_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// 过滤支付状态
+    #[prost(enumeration = "PayStatus", optional, tag = "3")]
+    pub status: ::core::option::Option<i32>,
+    /// 显示最新的N条记录
+    #[prost(int32, optional, tag = "4")]
+    pub top: ::core::option::Option<i32>,
+    /// 是否将已完成支付的记录放在列表开始
+    #[prost(bool, tag = "5")]
+    pub pined_done: bool,
+}
+/// 订单支付列表响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListPayForOrderResponse {
+    /// 列表数量
+    #[prost(int64, tag = "1")]
+    pub total: i64,
+    /// 列表
+    #[prost(message, repeated, tag = "2")]
+    pub pays: ::prost::alloc::vec::Vec<Pay>,
+}
+/// 完成支付请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PayDoneRequest {
+    /// 支付ID
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// 用户ID。如果是用户进行操作，必须指定该参数
+    #[prost(string, optional, tag = "2")]
+    pub user_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// 交易ID
+    #[prost(string, tag = "3")]
+    pub tx_id: ::prost::alloc::string::String,
+}
+/// 是否正在支付请求
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OrderIsPayingRequest {
+    /// 订单ID
+    #[prost(string, tag = "1")]
+    pub order_id: ::prost::alloc::string::String,
+    /// 用户ID。如果是用户进行操作，必须指定该参数
+    #[prost(string, optional, tag = "2")]
+    pub user_id: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// 是否正在支付响应
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OrderIsPayingResponse {
+    #[prost(bool, tag = "1")]
+    pub is_paying: bool,
 }
 /// Generated client implementations.
 pub mod order_service_client {
@@ -1741,6 +1890,123 @@ pub mod order_service_client {
                 .insert(GrpcMethod::new("pb.OrderService", "CreateOrderGoods"));
             self.inner.unary(req, path, codec).await
         }
+        /// 创建支付
+        pub async fn create_pay(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Pay>,
+        ) -> std::result::Result<tonic::Response<super::Id>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.OrderService/CreatePay",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("pb.OrderService", "CreatePay"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 查找支付
+        pub async fn find_pay(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FindPayRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FindPayResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/pb.OrderService/FindPay");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("pb.OrderService", "FindPay"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 订单支付列表
+        pub async fn list_pay_for_order(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListPayForOrderRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListPayForOrderResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.OrderService/ListPayForOrder",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.OrderService", "ListPayForOrder"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 完成支付
+        pub async fn pay_done(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PayDoneRequest>,
+        ) -> std::result::Result<tonic::Response<super::Pay>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/pb.OrderService/PayDone");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new("pb.OrderService", "PayDone"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// 是否正在支付
+        pub async fn order_is_paying(
+            &mut self,
+            request: impl tonic::IntoRequest<super::OrderIsPayingRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::OrderIsPayingResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/pb.OrderService/OrderIsPaying",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("pb.OrderService", "OrderIsPaying"));
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -1840,6 +2106,37 @@ pub mod order_service_server {
             &self,
             request: tonic::Request<super::OrderGoods>,
         ) -> std::result::Result<tonic::Response<super::Id>, tonic::Status>;
+        /// 创建支付
+        async fn create_pay(
+            &self,
+            request: tonic::Request<super::Pay>,
+        ) -> std::result::Result<tonic::Response<super::Id>, tonic::Status>;
+        /// 查找支付
+        async fn find_pay(
+            &self,
+            request: tonic::Request<super::FindPayRequest>,
+        ) -> std::result::Result<tonic::Response<super::FindPayResponse>, tonic::Status>;
+        /// 订单支付列表
+        async fn list_pay_for_order(
+            &self,
+            request: tonic::Request<super::ListPayForOrderRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListPayForOrderResponse>,
+            tonic::Status,
+        >;
+        /// 完成支付
+        async fn pay_done(
+            &self,
+            request: tonic::Request<super::PayDoneRequest>,
+        ) -> std::result::Result<tonic::Response<super::Pay>, tonic::Status>;
+        /// 是否正在支付
+        async fn order_is_paying(
+            &self,
+            request: tonic::Request<super::OrderIsPayingRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::OrderIsPayingResponse>,
+            tonic::Status,
+        >;
     }
     /// 订单服务
     #[derive(Debug)]
@@ -2582,6 +2879,228 @@ pub mod order_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = CreateOrderGoodsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/CreatePay" => {
+                    #[allow(non_camel_case_types)]
+                    struct CreatePaySvc<T: OrderService>(pub Arc<T>);
+                    impl<T: OrderService> tonic::server::UnaryService<super::Pay>
+                    for CreatePaySvc<T> {
+                        type Response = super::Id;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Pay>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move { (*inner).create_pay(request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = CreatePaySvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/FindPay" => {
+                    #[allow(non_camel_case_types)]
+                    struct FindPaySvc<T: OrderService>(pub Arc<T>);
+                    impl<
+                        T: OrderService,
+                    > tonic::server::UnaryService<super::FindPayRequest>
+                    for FindPaySvc<T> {
+                        type Response = super::FindPayResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::FindPayRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move { (*inner).find_pay(request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = FindPaySvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/ListPayForOrder" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListPayForOrderSvc<T: OrderService>(pub Arc<T>);
+                    impl<
+                        T: OrderService,
+                    > tonic::server::UnaryService<super::ListPayForOrderRequest>
+                    for ListPayForOrderSvc<T> {
+                        type Response = super::ListPayForOrderResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListPayForOrderRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).list_pay_for_order(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ListPayForOrderSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/PayDone" => {
+                    #[allow(non_camel_case_types)]
+                    struct PayDoneSvc<T: OrderService>(pub Arc<T>);
+                    impl<
+                        T: OrderService,
+                    > tonic::server::UnaryService<super::PayDoneRequest>
+                    for PayDoneSvc<T> {
+                        type Response = super::Pay;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::PayDoneRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move { (*inner).pay_done(request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = PayDoneSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/pb.OrderService/OrderIsPaying" => {
+                    #[allow(non_camel_case_types)]
+                    struct OrderIsPayingSvc<T: OrderService>(pub Arc<T>);
+                    impl<
+                        T: OrderService,
+                    > tonic::server::UnaryService<super::OrderIsPayingRequest>
+                    for OrderIsPayingSvc<T> {
+                        type Response = super::OrderIsPayingResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::OrderIsPayingRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                (*inner).order_is_paying(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = OrderIsPayingSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

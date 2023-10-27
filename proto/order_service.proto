@@ -5,6 +5,7 @@ package pb;
 import "address_message.proto";
 import "order_message.proto";
 import "order_goods_message.proto";
+import "pay_message.proto";
 import "aff_message.proto";
 import "id_message.proto";
 import "paginate_message.proto";
@@ -132,6 +133,59 @@ message ListOrderResponse {
   repeated Order orders = 2;
 }
 
+// 查找支付请求
+message FindPayRequest {
+  // 支付ID
+  string id = 1;
+  // 用户ID。如果是用户进行操作，必须指定该参数
+  optional string user_id = 2;
+}
+
+// 查找支付响应
+message FindPayResponse { optional Pay pay = 1; }
+
+// 订单支付列表请求
+message ListPayForOrderRequest {
+  string order_id = 1;
+  // 用户ID。如果是用户进行操作，必须指定该参数
+  optional string user_id = 2;
+  // 过滤支付状态
+  optional PayStatus status = 3;
+  // 显示最新的N条记录
+  optional int32 top = 4;
+  // 是否将已完成支付的记录放在列表开始
+  bool pined_done = 5;
+}
+
+// 订单支付列表响应
+message ListPayForOrderResponse {
+  // 列表数量
+  int64 total = 1;
+  // 列表
+  repeated Pay pays = 2;
+}
+
+// 完成支付请求
+message PayDoneRequest {
+  // 支付ID
+  string id = 1;
+  // 用户ID。如果是用户进行操作，必须指定该参数
+  optional string user_id = 2;
+  // 交易ID
+  string tx_id = 3;
+}
+
+// 是否正在支付请求
+message OrderIsPayingRequest {
+  // 订单ID
+  string order_id = 1;
+  // 用户ID。如果是用户进行操作，必须指定该参数
+  optional string user_id = 2;
+}
+
+// 是否正在支付响应
+message OrderIsPayingResponse { bool is_paying = 1; }
+
 // 订单服务
 service OrderService {
   // 添加地址
@@ -166,4 +220,15 @@ service OrderService {
 
   // 创建订单商品
   rpc CreateOrderGoods(OrderGoods) returns (ID);
+
+  // 创建支付
+  rpc CreatePay(Pay) returns (ID);
+  // 查找支付
+  rpc FindPay(FindPayRequest) returns (FindPayResponse);
+  // 订单支付列表
+  rpc ListPayForOrder(ListPayForOrderRequest) returns (ListPayForOrderResponse);
+  // 完成支付
+  rpc PayDone(PayDoneRequest) returns (Pay);
+  // 是否正在支付
+  rpc OrderIsPaying(OrderIsPayingRequest) returns (OrderIsPayingResponse);
 }

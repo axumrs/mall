@@ -144,3 +144,21 @@ CREATE TABLE IF NOT EXISTS "order_goods" ( -- 订单商品
 	"num" u32 NOT NULL, -- 购买数量
 	"price" u32 NOT NULL -- 购买单价
 );
+
+CREATE TYPE "pay_status" AS ENUM( -- 支付状态
+	'Unspecified', -- 未知
+	'Unpay', -- 未支付
+	'Paying', -- 正在支付
+	'Done',  -- 支付完成
+	'TimeoutCancel' -- 超时取消
+);
+CREATE TABLE IF NOT EXISTS "pays" ( -- 支付
+	"id" CHAR(20) PRIMARY KEY,
+	"order_id" CHAR(20) NOT NULL, -- 订单ID
+	"status" pay_status NOT NULL DEFAULT 'Unspecified', -- 支付状态
+	"tx_id" CHAR(64) NOT NULL, -- 支付交易ID
+	"amount" u32 NOT NULL, -- 支付金额
+	"dateline" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 创建时间
+	"timeout_until_dateline" TIMESTAMPTZ NOT NULL, -- 支付超时的时间
+	"done_dateline" TIMESTAMPTZ NOT NULL -- 完成支付时间
+);
