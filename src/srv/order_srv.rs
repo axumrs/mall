@@ -282,34 +282,57 @@ impl OrderService for Order {
         &self,
         request: tonic::Request<pb::Pay>,
     ) -> std::result::Result<tonic::Response<pb::Id>, tonic::Status> {
-        unimplemented!()
+        let pay = model::Pay::from(request.into_inner());
+        let id = db::pay::create(&*self.pool, &pay).await.map_err(e2s)?;
+        Ok(tonic::Response::new(pb::Id { value: id }))
     }
     /// 查找支付
     async fn find_pay(
         &self,
         request: tonic::Request<pb::FindPayRequest>,
     ) -> std::result::Result<tonic::Response<pb::FindPayResponse>, tonic::Status> {
-        unimplemented!()
+        let r = model::FindPayRequest::from(request.into_inner());
+        let pay = db::pay::find(&*self.pool, &r).await.map_err(e2s)?;
+        let pay = match pay {
+            Some(p) => Some(p.into()),
+            None => None,
+        };
+
+        Ok(tonic::Response::new(pb::FindPayResponse { pay }))
     }
     /// 订单支付列表
     async fn list_pay_for_order(
         &self,
         request: tonic::Request<pb::ListPayForOrderRequest>,
     ) -> std::result::Result<tonic::Response<pb::ListPayForOrderResponse>, tonic::Status> {
-        unimplemented!()
+        let r = model::ListPayForOrderRequest::from(request.into_inner());
+        let res = db::pay::list4order(&self.pool, &r).await.map_err(ce2s)?;
+
+        Ok(tonic::Response::new(res.into()))
     }
     /// 完成支付
     async fn pay_done(
         &self,
         request: tonic::Request<pb::PayDoneRequest>,
     ) -> std::result::Result<tonic::Response<pb::Pay>, tonic::Status> {
-        unimplemented!()
+        let r = model::PayDoneRequest::from(request.into_inner());
+        let pay = db::pay::done(&*self.pool, &r).await.map_err(e2s)?;
+        if pay.is_none() {
+            return Err(tonic::Status::not_found("不存在的记录"));
+        }
+        Ok(tonic::Response::new(pay.unwrap().into()))
     }
     /// 是否正在支付
     async fn order_is_paying(
         &self,
         request: tonic::Request<pb::OrderIsPayingRequest>,
     ) -> std::result::Result<tonic::Response<pb::OrderIsPayingResponse>, tonic::Status> {
-        unimplemented!()
+        let r = model::OrderIsPayingRequest::from(request.into_inner());
+        let is_paying = db::pay::order_is_paying(&*self.pool, &r)
+            .await
+            .map_err(e2s)?;
+        Ok(tonic::Response::new(pb::OrderIsPayingResponse {
+            is_paying,
+        }))
     }
 }
